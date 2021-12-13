@@ -1,3 +1,7 @@
 
+# python stuffs
+.venv/
 __pycache__/
 
+# data
+datasets_tmp

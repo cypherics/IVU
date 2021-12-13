@@ -3,84 +3,19 @@ import cv2
 import numpy as np
 
 import utils
+from pose_estimation.AbstractPoseEstimator import PoseEstimationFailedError
 
 
-def extract_mediapipe(datasetPath):
-    """Mediapipe provides 3D pose estimation
-    """
-
-    import mediapipe as mp
-    
+def extractPoses(datasetPath, poseEstimator):
     labels = list(os.listdir(datasetPath))
-    dataset = dict()
-
-    print('[INFO]: extracting poses from dataset using mediapipe...')
-    
-    with mp.solutions.pose.Pose(
-            static_image_mode=True,
-            model_complexity=2,
-            enable_segmentation=True,
-            min_detection_confidence=0.5) as pose:
-            
-        print('[INFO]: found %d classes' % len(labels))
-
-        for label in labels:
-            labelPath = os.path.join(datasetPath, label)
-            fnames = list(os.listdir(labelPath))
-            dataset[label] = list()
-
-            print('[INFO]: processing class %s...' % label)
-            print('[INFO]: progress: 0 / %d' % len(fnames), end='\r')
-            
-            for i, fname in enumerate(fnames):
-                fpath = os.path.join(labelPath, fname)
-                image = cv2.imread(fpath)
-                image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
-                
-                results = pose.process(image)
-                if not results.pose_landmarks:
-                    print('[INFO]: progress: %d / %d' % (i, len(fnames)), end='\r')
-                    continue
-
-                # visibility might be useful
-                # landmarks = [(p.x, p.y, p.z, p.visibility) for p in results.pose_landmarks]
-                keypoints = [(p.x, p.y, p.z) for p in results.pose_landmarks.landmark]
-                keypoints = np.array(keypoints)
-
-                dataset[label].append(keypoints)
-                print('[INFO]: progress: %d / %d' % (i, len(fnames)), end='\r')
-
-            dataset[label] = np.array(dataset[label], dtype=np.float32)
-            print('[INFO]: progress: %d / %d' % (len(fnames), len(fnames)))
-
-    return dataset
-    
-
-def extract_ActionAI(datasetPath):
-    """ActionAI provides 2D pose estimation
-    """
-
-    import tensorflow as tf
-    
-    labels = list(os.listdir(datasetPath))
-    dataset = dict()
-
-    print('[INFO]: extracting poses from dataset using ActionAI...')
-
-    interpreter = tf.lite.Interpreter(model_path='./models/existing/ActionAIpose.tflite')
-    interpreter.allocate_tensors()
-    
-    inputDetails = interpreter.get_input_details()
-    outputDetails = interpreter.get_output_details()
-    _, mpDim, _, numKeyPoints = outputDetails[0]['shape']
-    imageInputSize = (inputDetails[0]['shape'][1], inputDetails[0]['shape'][2])
+    poses = dict()
 
     print('[INFO]: found %d classes' % len(labels))
-    
+
     for label in labels:
         labelPath = os.path.join(datasetPath, label)
         fnames = list(os.listdir(labelPath))
-        dataset[label] = list()
+        poses[label] = list()
 
         print('[INFO]: processing class %s...' % label)
         print('[INFO]: progress: 0 / %d' % len(fnames), end='\r')
@@ -88,48 +23,58 @@ def extract_ActionAI(datasetPath):
         for i, fname in enumerate(fnames):
             fpath = os.path.join(labelPath, fname)
             image = cv2.imread(fpath)
-
-            # resize image for model
-            image = cv2.resize(image, imageInputSize, interpolation=cv2.INTER_NEAREST)
-            image = np.expand_dims(image.astype(inputDetails[0]['dtype'])[:, :, :3], axis=0)
             
-            # run model
-            interpreter.set_tensor(inputDetails[0]['index'], image)
-            interpreter.invoke()
-            result = interpreter.get_tensor(outputDetails[0]['index'])
+            try:
+                poses[label].append(poseEstimator.getKeypointsFromImage(image))
+            except PoseEstimationFailedError:
+                pass
             
-            res = result.reshape(1, mpDim**2, numKeyPoints)
-            coords = np.divmod(np.argmax(res, axis=1), mpDim)
-            
-            keypoints = np.vstack(coords).T
-
-            dataset[label].append(keypoints)
             print('[INFO]: progress: %d / %d' % (i, len(fnames)), end='\r')
 
-        dataset[label] = np.array(dataset[label], dtype=np.float32)
+        poses[label] = np.array(poses[label], dtype=np.float32)
         print('[INFO]: progress: %d / %d' % (len(fnames), len(fnames)))
 
-    return dataset
+    return poses
 
 
-def postprocess_dataset(dataset):
-    X = list()
-    Y = list()
-    labels = list()
+def extractMediapipe(datasetPath, complexity=2):
+    """Mediapipe provides 3D pose estimation
+    """
+    print('[INFO]: extracting poses from dataset using MediPpipe (complexity=%d)...' % complexity)
+    from pose_estimation.PoseEstimatorMediaPipe import PoseEstimatorMediaPipe
+    poseEstimator = PoseEstimatorMediaPipe(complexity=complexity)
 
-    for i, label in enumerate(dataset):
-        keypoints = dataset[label]
-        X.append(keypoints)
-        Y.append(np.full(keypoints.shape[0], i, dtype=np.float32))
-        labels.append(label)
+    return extractPoses(datasetPath, poseEstimator)
 
-    dataset = {
-        'labels': labels,
-        'X': np.concatenate(X, axis=0),
-        'Y': np.concatenate(Y, axis=0),
-    }
 
-    return dataset
+def extractOpenPose(datasetPath):
+    """OpenPose provides 3D pose estimation
+    """
+    print('[INFO]: extracting poses from dataset using OpenPose...')
+    from pose_estimation.PoseEstimatorOpenPose import PoseEstimatorOpenPose
+    poseEstimator = PoseEstimatorOpenPose('F:/Programs/openpose/')
+
+    return extractPoses(datasetPath, poseEstimator)
+    
+
+def extractActionAI(datasetPath):
+    """ActionAI provides 2D pose estimation
+    """
+    print('[INFO]: extracting poses from dataset using ActionAI...')
+    from pose_estimation.PoseEstimatorActionAI import PoseEstimatorActionAI
+    poseEstimator = PoseEstimatorActionAI('./models/existing/ActionAIpose.tflite')
+
+    return extractPoses(datasetPath, poseEstimator)
+
+
+def extractMovenet(datasetPath):
+    """Movenet provides 2D pose estimation
+    """
+    print('[INFO]: extracting poses from dataset using Movenet...')
+    from pose_estimation.PoseEstimatorMovenet import PoseEstimatorMovenet
+    poseEstimator = PoseEstimatorMovenet('./models/existing/movenet_thunder.tflite')
+
+    return extractPoses(datasetPath, poseEstimator)
 
 
 def main(datasetsPath):
@@ -139,39 +84,25 @@ def main(datasetsPath):
     datasetPaths = [dataset1Path, dataset2Path]
     
     poseExtractors = {
-        'mediapipe': extract_mediapipe,
-        'actionai': extract_ActionAI,
+        'mediapipe_c0': lambda x: extractMediapipe(x, complexity=0),
+        'mediapipe_c1': lambda x: extractMediapipe(x, complexity=1),
+        'mediapipe_c2': lambda x: extractMediapipe(x, complexity=2),
+        'actionai': extractActionAI,
+        'openpose': extractOpenPose,
+        'movenet': extractMovenet,
     }
 
     for i, datasetPath in enumerate(datasetPaths):
 
         for poseExtractorName in poseExtractors:
-            outputPath = 'datasets/ds%d_%s' % (i+1, poseExtractorName)
+            outputPath = 'datasets/pose_ds%d_%s.pkl' % (i+1, poseExtractorName)
 
             if not os.path.exists(outputPath):
                 poseExtractorFunc = poseExtractors[poseExtractorName]
                 
-                dataset = poseExtractorFunc(datasetPath)
-                dataset = postprocess_dataset(dataset)
-                print('[INFO]: saving dataset to: %s' % outputPath)
-                utils.save_pickle(dataset, outputPath)
-
-    ###########################################################################
-    # # Dataset2 - ActionAI
-    # outputPath = 'datasets/ds2_actionai.pkl'
-    # if not os.path.exists(outputPath):
-    #     dataset = extract_ActionAI(dataset2Path)
-    #     dataset = postprocess_dataset(dataset)
-    #     print('[INFO]: saving dataset to: %s' % outputPath)
-    #     utils.save_pickle(dataset, outputPath)
-
-    # outputPath = 'datasets/ds2_mediapipe.pkl'
-    # if not os.path.exists(outputPath):
-    #     dataset = extract_mediapipe(datasetPath2)
-    #     dataset = postprocess_dataset(dataset)
-    #     fpath = 'datasets/ds2_mediapipe.pkl'
-    #     print('[INFO]: saving dataset to: %s' % fpath)
-    #     utils.save_pickle(dataset, fpath)
+                poses = poseExtractorFunc(datasetPath)
+                print('[INFO]: saving poses to: %s' % outputPath)
+                utils.save_pickle(poses, outputPath)
 
 
 if __name__ == '__main__':
