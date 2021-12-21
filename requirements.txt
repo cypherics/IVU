@@ -3,3 +3,4 @@ numpy
 mediapipe
 opencv-python
 matplotlib
+py-oneliner
