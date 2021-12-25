@@ -1,4 +1,3 @@
-import cv2
 import numpy as np
 import mediapipe as mp
 
@@ -55,7 +54,7 @@ class PoseEstimatorMediaPipe(AbstractPoseEstimator):
         # landmarks = [(p.x, p.y, p.z, p.visibility) for p in results.pose_landmarks]
         key_points = [(p.x, p.y, p.z) for p in results.pose_landmarks.landmark]
         return (
-            np.array(key_points)[:, self._model_16_key_points]
+            np.array(key_points)[self._model_16_key_points, :]
             if self.use_16_key_points
             else np.array(key_points)
         )

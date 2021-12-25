@@ -1,6 +1,5 @@
+import enum
 from enum import Enum
-from typing import Type
-
 import numpy as np
 
 
@@ -61,8 +60,10 @@ class Pose16LandmarksBodyModel(Enum):
 
 
 def get_pose_size(
-    landmarks: np.ndarray, body_model: Type[Enum], torso_size_multiplier: float = 2.5
+    landmarks: np.ndarray, body_model, torso_size_multiplier: float = 2.5
 ):
+    assert type(body_model) == enum.EnumMeta
+
     # landmarks.shape: [N_poses, N_landmarks, N_dim]
     n_dim = landmarks.shape[-1]
 
@@ -86,7 +87,9 @@ def get_pose_size(
     return pose_size
 
 
-def normalize_landmarks(landmarks: np.ndarray, body_model: Type[Enum]) -> np.ndarray:
+def normalize_landmarks(landmarks: np.ndarray, body_model) -> np.ndarray:
+    assert type(body_model) == enum.EnumMeta
+
     # landmarks.shape: [N_poses, N_landmarks, N_dim]
     n_dim = landmarks.shape[-1]
     pose_center = (
@@ -98,10 +101,10 @@ def normalize_landmarks(landmarks: np.ndarray, body_model: Type[Enum]) -> np.nda
     return landmarks
 
 
-def landmarks_to_embedding(landmarks: np.ndarray, body_model: Type[Enum]) -> np.ndarray:
+def landmarks_to_embedding(landmarks: np.ndarray, body_model) -> np.ndarray:
+    assert type(body_model) == enum.EnumMeta
     landmarks = normalize_landmarks(
         np.expand_dims(landmarks, axis=0) if landmarks.ndim == 2 else landmarks,
         body_model,
     )
-    landmarks = landmarks.reshape(landmarks.shape[0], -1)
     return landmarks
