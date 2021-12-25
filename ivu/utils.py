@@ -2,8 +2,10 @@ import pickle
 import os
 from collections import defaultdict
 
+import decord
 import pandas as pd
 import numpy as np
+from decord import VideoReader, cpu
 
 
 def sequence_generator(input_stream: np.ndarray, sequence_count: int):
@@ -47,3 +49,7 @@ def default_dict_list_values_to_numpy_array(
         assert type(value) == list
         output[key] = list_to_numpy(value)
     return output
+
+
+def read_video(pth, width=-1, height=-1) -> decord.VideoReader:
+    return VideoReader(pth, ctx=cpu(0), width=width, height=height)
