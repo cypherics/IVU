@@ -72,8 +72,8 @@ def generate_data_over_images(
         for iterator, file in enumerate(files):
             file_path = os.path.join(*[data_set_dir, class_label, file])
             one_liner.one_line(
-                tag=f"PROGRESS: {iterator + 1}/{len(files)}",
-                tag_data=f"CURRENT FILE : {file}, LABEL: {class_label}",
+                tag=f"[PROGRESS: {iterator + 1}/{len(files)}]",
+                tag_data=f"[CURRENT FILE : {file}] [LABEL: {class_label}]",
                 to_reset_data=True,
                 tag_color="red",
                 tag_data_color="yellow",
@@ -126,16 +126,16 @@ def generate_data_over_videos(
         files = os.listdir(os.path.join(data_set_dir, class_label))
         for iterator, file in enumerate(files):
             file_path = os.path.join(*[data_set_dir, class_label, file])
-            one_liner.one_line(
-                tag=f"PROGRESS: {iterator + 1}/{len(files)}",
-                tag_data=f"CURRENT FILE : {file}, LABEL: {class_label}",
-                to_reset_data=True,
-                tag_color="red",
-                tag_data_color="yellow",
-            )
-
             vr = read_video(file_path, width=frame_width, height=frame_height)
             for frame in range(len(vr)):
+                one_liner.one_line(
+                    tag=f"PROGRESS [VIDEOS: {iterator + 1}/{len(files)}] [CURRENT FILE : {file}] [LABEL: {class_label}]",
+                    tag_data=f"[FRAMES : {frame + 1}/{len(vr)}]",
+                    to_reset_data=True,
+                    tag_color="red",
+                    tag_data_color="red",
+                )
+
                 try:
                     (
                         body_key_points,

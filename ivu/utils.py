@@ -28,7 +28,7 @@ def folder_generator(input_path: str):
         yield sub_folder_index, sub_folder
 
 
-def load_pickle(file_path):
+def load_pickle(file_path) -> pd.DataFrame:
     return pd.read_pickle(file_path)
 
 
