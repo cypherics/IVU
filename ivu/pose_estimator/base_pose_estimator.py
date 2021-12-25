@@ -6,9 +6,13 @@ class AbstractPoseEstimator(ABC):
     @abstractmethod
     def reset(self):
         pass
-    
+
     @abstractmethod
-    def getKeypointsFromImage(self, image: np.ndarray) -> np.ndarray:
+    def get_key_points_from_image(self, image: np.ndarray) -> np.ndarray:
+        pass
+
+    @abstractmethod
+    def get_key_points_from_video(self, **kwargs) -> np.ndarray:
         pass
 
 
