@@ -49,17 +49,19 @@ data_set_over_videos(where_is_my_data, where_i_want_to_store_my_data, width=-1, 
 
 - Output
 
-    Data Generated From Videos contain following columns
-
-    `['key_points', 'normalized_key_points', 'normalized_distance_matrix', 'distance_matrix', 'class_label', 'class_label_index', 'file', 'frame_number', 'frame_details']`
-    
-    Data Generated From Images contain following columns
-
-    `['key_points', 'normalized_key_points', 'normalized_distance_matrix', 'distance_matrix', 'class_label', 'class_label_index', 'file']`
-
 ```python
 from ivu.utils import load_pickle
 
 path_to_pickle = "path_to_pickle"
 data = load_pickle(path_to_pickle)
 ```
+
+Data Generated From Videos contain following columns
+
+`['key_points', 'normalized_key_points', 'normalized_distance_matrix', 'distance_matrix', 'class_label', 'class_label_index', 'file', 'frame_number', 'frame_details']`
+
+Data Generated From Images contain following columns
+
+`['key_points', 'normalized_key_points', 'normalized_distance_matrix', 'distance_matrix', 'class_label', 'class_label_index', 'file']`
+
+
