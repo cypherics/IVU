@@ -1,5 +1,6 @@
 import os
-from collections import defaultdict
+from statistics import mode
+from collections import defaultdict, Counter
 
 import cv2
 import numpy as np
@@ -17,10 +18,84 @@ from ivu.utils import (
     folder_generator,
     save_pickle,
     read_video,
+    train_val_split,
+    shuffle_two_list_together,
+    one_hot,
+    load_pickle,
 )
 
 
-class Data:
+class TrainInputData:
+    def __init__(self, x, y):
+        self._x = x
+        self._y = y
+
+    def create_sequence_data(self, validation_split: float = None, stride: int = 300):
+        _x = list()
+        _y = list()
+
+        n_samples = self._x.shape[0]
+        indices = np.arange(n_samples)
+
+        for start in range(0, n_samples, stride):
+            end = min(start + stride, n_samples)
+
+            batch_idx = indices[start:end]
+            if len(batch_idx) < stride:
+                batch_idx = indices[start - stride + end - start : end]
+
+            _x.append(self._x[batch_idx])
+            _y.append(mode(self._y[batch_idx]))
+            # _y.append(Counter(y[batch_idx]).most_common(1)[0][0])
+
+        _x_shuffled, _y_shuffled = shuffle_two_list_together(_x, _y)
+        if validation_split is not None:
+            _x_train, _y_train, _x_val, _y_val = train_val_split(
+                np.array(_x_shuffled), np.array(_y_shuffled)
+            )
+        else:
+            _x_train, _y_train, _x_val, _y_val = (
+                np.array(_x_shuffled),
+                np.array(_y_shuffled),
+                None,
+                None,
+            )
+        return (
+            _x_train,
+            one_hot(_y_train),
+        ), None if _x_val is None or _y_val is None else (_x_val, one_hot(_y_val))
+
+    @classmethod
+    def data_with_normalized_key_points(cls, pth):
+        pass
+
+    @classmethod
+    def data_with_normalized_distance_matrix(cls, pth):
+        df = load_pickle(pth)
+        subset = df[
+            [
+                "normalized_distance_matrix",
+                "class_label",
+                "class_label_index",
+                "frame_details",
+                "frame_number",
+            ]
+        ]
+        x = np.array(subset["normalized_distance_matrix"].tolist())
+        y = np.array(subset["class_label_index"].tolist())
+
+        return cls(x, y)
+
+    @classmethod
+    def data_with_distance_matrix(cls, pth):
+        pass
+
+    @classmethod
+    def data_with_key_points(cls, pth):
+        pass
+
+
+class GeneratedData:
     def __init__(self):
         self._meta = defaultdict(list)
 
@@ -60,13 +135,13 @@ def generate_data_over_images(
     data_set_dir: str,
     pose_estimator_complexity=1,
     use_pose_estimator_over_static_image=True,
-) -> Data:
+) -> GeneratedData:
     pose_estimator = get_media_pipe_pose_estimator(
         complexity=pose_estimator_complexity,
         static_image_mode=use_pose_estimator_over_static_image,
     )
 
-    data = Data()
+    data = GeneratedData()
     for class_label_index, class_label in folder_generator(data_set_dir):
         files = os.listdir(os.path.join(data_set_dir, class_label))
         for iterator, file in enumerate(files):
@@ -115,13 +190,13 @@ def generate_data_over_videos(
     use_pose_estimator_over_static_image=True,
     frame_width=-1,
     frame_height=-1,
-) -> Data:
+) -> GeneratedData:
     pose_estimator = get_media_pipe_pose_estimator(
         complexity=pose_estimator_complexity,
         static_image_mode=use_pose_estimator_over_static_image,
     )
 
-    data = Data()
+    data = GeneratedData()
     for class_label_index, class_label in folder_generator(data_set_dir):
         files = os.listdir(os.path.join(data_set_dir, class_label))
         for iterator, file in enumerate(files):
