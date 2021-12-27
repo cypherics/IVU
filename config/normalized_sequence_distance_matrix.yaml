@@ -40,4 +40,4 @@ model:
     input_features: 136
     n_classes: 7
 
-log_dir : C:\Users\Fuzail.Palnak\PycharmProjects\iuv\IVU\logs
+log_dir : path_to_where_logs_will_be_stored
