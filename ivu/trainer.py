@@ -1,4 +1,4 @@
-from ivu.conf import Config
+from ivu.conf import TrainConf
 from ivu.dataset import TrainInputData
 
 
@@ -10,7 +10,11 @@ class Trainer:
 
     def start_training(self):
         model = self._config.get_model()
-        model.compile(optimizer=self._config.get_optimizer(), loss=self._config.get_loss(), metrics="accuracy")
+        model.compile(
+            optimizer=self._config.get_optimizer(),
+            loss=self._config.get_loss(),
+            metrics="accuracy",
+        )
 
         _ = model.fit(
             self._train_data[0],
@@ -32,7 +36,7 @@ class Trainer:
     @classmethod
     def train_with_normalized_distance_matrix(cls, data_pth, conf_pth):
         input_data = TrainInputData.data_with_normalized_distance_matrix(data_pth)
-        conf = Config(conf_pth)
+        conf = TrainConf(conf_pth)
 
         parameters = conf.get_entry("data")
         train_data, val_data = input_data.create_sequence_data(

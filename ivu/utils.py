@@ -8,6 +8,12 @@ import decord
 import pandas as pd
 import numpy as np
 from decord import VideoReader, cpu
+from scipy.spatial.distance import squareform, pdist
+
+from ivu.pose_estimator.pose_landmarks import (
+    landmarks_to_embedding,
+    Pose16LandmarksBodyModel,
+)
 
 
 def shuffle_two_list_together(x, y):
@@ -90,3 +96,58 @@ def read_video(pth, width=-1, height=-1) -> decord.VideoReader:
 
 def extract_from_data_frames(data_frame: pd.DataFrame, columns: List):
     return data_frame[columns]
+
+
+def get_pose_data_from_rgb_frame(frame, pose_estimator):
+    body_key_points = pose_estimator.get_key_points_from_image(frame)
+    distance_matrix = squareform(pdist(np.array(body_key_points)))
+
+    normalized_body_key_points = landmarks_to_embedding(
+        body_key_points, Pose16LandmarksBodyModel
+    )
+    normalized_distance_matrix = squareform(
+        pdist(np.array(normalized_body_key_points[0]))
+    )
+
+    return (
+        body_key_points,
+        distance_matrix,
+        normalized_body_key_points,
+        normalized_distance_matrix,
+    )
+
+
+def normalize_body_key_points(body_key_points, body_model):
+    return landmarks_to_embedding(body_key_points, body_model)[0]
+
+
+def get_body_key_points(pose_estimator, rgb_input):
+    return pose_estimator.get_key_points_from_image(rgb_input)
+
+
+def get_distance_matrix(pose_estimator, rgb_input):
+    body_key_points = pose_estimator.get_key_points_from_image(rgb_input)
+    return get_distance_matrix_from_key_points(np.array(body_key_points))
+
+
+def get_distance_matrix_from_key_points(body_key_points):
+    return squareform(pdist(np.array(body_key_points)))
+
+
+def get_body_normalized_key_points(pose_estimator, rgb_input):
+    return normalize_body_key_points(
+        pose_estimator.get_key_points_from_image(rgb_input), Pose16LandmarksBodyModel
+    )
+
+
+def get_normalized_distance_matrix(pose_estimator, rgb_input):
+    body_key_points = pose_estimator.get_key_points_from_image(rgb_input)
+    return squareform(
+        pdist(normalize_body_key_points(body_key_points, Pose16LandmarksBodyModel))
+    )
+
+
+def get_normalized_distance_matrix_from_body_key_points(body_key_points):
+    return squareform(
+        pdist(normalize_body_key_points(body_key_points, Pose16LandmarksBodyModel))
+    )

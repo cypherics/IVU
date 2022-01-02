@@ -1,19 +1,16 @@
 import os
 from statistics import mode
-from collections import defaultdict, Counter
+from collections import defaultdict
 
 import cv2
 import numpy as np
 
 from py_oneliner import one_liner
-from scipy.spatial.distance import squareform, pdist
 
 from ivu.pose_estimator.base_pose_estimator import PoseEstimationFailedError
 from ivu.pose_estimator.media_pipe_estimator import get_media_pipe_pose_estimator
-from ivu.pose_estimator.pose_landmarks import (
-    Pose16LandmarksBodyModel,
-    landmarks_to_embedding,
-)
+
+
 from ivu.utils import (
     folder_generator,
     save_pickle,
@@ -22,7 +19,75 @@ from ivu.utils import (
     shuffle_two_list_together,
     one_hot,
     load_pickle,
+    get_pose_data_from_rgb_frame,
+    get_normalized_distance_matrix,
 )
+
+
+class VideoInferenceInputData:
+    def __init__(
+        self,
+        data_dir=None,
+        pose_estimator_complexity=1,
+        use_pose_estimator_over_static_image=True,
+        frame_width=-1,
+        frame_height=-1,
+        stride=128,
+        **kwargs,
+    ):
+        self._pose_estimator = get_media_pipe_pose_estimator(
+            complexity=pose_estimator_complexity,
+            static_image_mode=use_pose_estimator_over_static_image,
+        )
+        self._data_dir = data_dir
+        self._frame_width = frame_width
+        self._frame_height = frame_height
+        self._stride = stride
+
+    @staticmethod
+    def _adjust_frame_for_video_frame(x, stride):
+        n_samples = x.shape[0]
+
+        indices = np.arange(n_samples)
+        end = min(0 + stride, n_samples)
+        stride_idx = indices[0 - stride + end - 0 : end]
+        return x[stride_idx]
+
+    def data_for_normalized_distance_matrix(self):
+
+        files = os.listdir(self._data_dir)
+        for iterator, file in enumerate(files):
+            input_data = list()
+            file_path = os.path.join(*[self._data_dir, file])
+            vr = read_video(
+                file_path, width=self._frame_width, height=self._frame_height
+            )
+
+            for stride_iterator, frame in enumerate(range(len(vr))):
+                one_liner.one_line(
+                    tag=f"PROGRESS [VIDEOS: {iterator + 1}/{len(files)}] [CURRENT FILE : {file}]",
+                    tag_data=f"[FRAMES : {frame + 1}/{len(vr)}]",
+                    to_reset_data=True,
+                    tag_color="red",
+                    tag_data_color="red",
+                )
+                normalized_distance_matrix = get_normalized_distance_matrix(
+                    vr[frame].asnumpy(), frame
+                )
+                input_data.append(
+                    normalized_distance_matrix[
+                        np.triu_indices(normalized_distance_matrix.shape[0], k=1)
+                    ]
+                )
+                if stride_iterator + 1 % self._stride == 0:
+                    yield iterator, file, np.array(input_data)
+                elif (
+                    stride_iterator + 1 == len(vr)
+                    and stride_iterator + 1 % self._stride != 0
+                ):
+                    yield iterator, file, self._adjust_frame_for_video_frame(
+                        np.array(input_data), self._stride
+                    )
 
 
 class TrainInputData:
@@ -112,26 +177,7 @@ class GeneratedData:
         save_pickle(self._meta, pth)
 
 
-def get_pose_data_from_rgb_frame(frame, pose_estimator):
-    body_key_points = pose_estimator.get_key_points_from_image(frame)
-    distance_matrix = squareform(pdist(np.array(body_key_points)))
-
-    normalized_body_key_points = landmarks_to_embedding(
-        body_key_points, Pose16LandmarksBodyModel
-    )
-    normalized_distance_matrix = squareform(
-        pdist(np.array(normalized_body_key_points[0]))
-    )
-
-    return (
-        body_key_points,
-        distance_matrix,
-        normalized_body_key_points,
-        normalized_distance_matrix,
-    )
-
-
-def generate_data_over_images(
+def generate_training_data_over_images(
     data_set_dir: str,
     pose_estimator_complexity=1,
     use_pose_estimator_over_static_image=True,
@@ -184,7 +230,7 @@ def generate_data_over_images(
     return data
 
 
-def generate_data_over_videos(
+def generate_training_data_over_videos(
     data_set_dir: str,
     pose_estimator_complexity=1,
     use_pose_estimator_over_static_image=True,
@@ -245,13 +291,13 @@ def create_sequence_data_set_over_videos(data_set_path, frame_count):
     pass
 
 
-def data_set_over_images(
+def training_data_set_over_images(
     data_set_dir: str,
     save_dir: str,
     pose_estimator_complexity=1,
     use_pose_estimator_over_static_image=True,
 ):
-    data = generate_data_over_images(
+    data = generate_training_data_over_images(
         data_set_dir=data_set_dir,
         pose_estimator_complexity=pose_estimator_complexity,
         use_pose_estimator_over_static_image=use_pose_estimator_over_static_image,
@@ -259,7 +305,7 @@ def data_set_over_images(
     data.store(save_dir=save_dir)
 
 
-def data_set_over_videos(
+def training_data_set_over_videos(
     data_set_dir: str,
     save_dir: str,
     pose_estimator_complexity=1,
@@ -267,7 +313,7 @@ def data_set_over_videos(
     width=-1,
     height=-1,
 ):
-    data = generate_data_over_videos(
+    data = generate_training_data_over_videos(
         data_set_dir=data_set_dir,
         pose_estimator_complexity=pose_estimator_complexity,
         use_pose_estimator_over_static_image=use_pose_estimator_over_static_image,

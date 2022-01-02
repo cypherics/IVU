@@ -9,9 +9,20 @@ from tensorflow.keras import losses
 from ivu import models
 
 
-class Config:
-    def __init__(self, pth: str):
+class Conf:
+    def __init__(self, pth):
         self._config = OmegaConf.load(pth)
+
+    def get_entry(self, name: str):
+        return self._config[name]
+
+    def get_sub_value_entry(self, name: str, sub_value: str):
+        return self._config[name][sub_value]
+
+
+class TrainConf(Conf):
+    def __init__(self, pth: str):
+        super().__init__(pth)
 
         self._optimizer = None
         self._callbacks = None
@@ -19,9 +30,6 @@ class Config:
 
         self._log_dir = self._config.log_dir
         self._model_pth, self._graph_pth = self._create_log_dir()
-
-    def get_entry(self, name: str):
-        return self._config[name]
 
     def get_loss(self):
         return getattr(losses, self._config.loss.name)(**self._config.loss.parameters)
@@ -57,7 +65,27 @@ class Config:
         )
 
 
+class DataConf(Conf):
+    def __init__(self, pth):
+        super().__init__(pth)
+
+    def get_saved_model_pth(self):
+        return self._config.get_sub_value_entry("inference", "model_pth")
+
+    def get_video_parameters(self):
+        return self._config.get_entry("video")
+
+    def get_pose_estimators_parameters(self):
+        return self._config.get_entry("pose")
+
+    def get_inference_parameters(self):
+        return self._config.get_entry("inference")
+
+
 #
 # conf = Config(r"config/normalized_sequence_distance_matrix.yaml")
 # conf.get_callbacks()
 # conf.get_entry("epochs")
+
+# conf = DataConf(r"/home/palnak/Workspace/Studium/courseWork/IVU/config/data.yaml")
+# print(conf.get_sub_value_entry("inference", "model_pth"))
