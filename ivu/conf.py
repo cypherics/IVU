@@ -70,16 +70,16 @@ class DataConf(Conf):
         super().__init__(pth)
 
     def get_saved_model_pth(self):
-        return self._config.get_sub_value_entry("inference", "model_pth")
+        return self.get_sub_value_entry("inference", "model_pth")
 
     def get_video_parameters(self):
-        return self._config.get_entry("video")
+        return self.get_entry("video")
 
     def get_pose_estimators_parameters(self):
-        return self._config.get_entry("pose")
+        return self.get_entry("pose")
 
     def get_inference_parameters(self):
-        return self._config.get_entry("inference")
+        return self.get_entry("inference")
 
 
 #

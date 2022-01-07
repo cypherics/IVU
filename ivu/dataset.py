@@ -72,7 +72,7 @@ class VideoInferenceInputData:
                     tag_data_color="red",
                 )
                 normalized_distance_matrix = get_normalized_distance_matrix(
-                    vr[frame].asnumpy(), frame
+                    pose_estimator=self._pose_estimator, rgb_input=vr[frame].asnumpy()
                 )
                 input_data.append(
                     normalized_distance_matrix[
