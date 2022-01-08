@@ -7,11 +7,19 @@ from tensorflow.keras import optimizers
 from tensorflow.keras import callbacks
 from tensorflow.keras import losses
 from ivu import models
+from ivu.utils import log_in_tmp_dir, log_in_current_dir
 
 
 class Conf:
     def __init__(self, pth):
         self._config = OmegaConf.load(pth)
+        if "log_dir" not in self._config.keys():
+            log_dir = log_in_tmp_dir()
+            self._config["log_dir"] = log_dir
+
+        elif self._config["log_dir"] is None:
+            log_dir = log_in_current_dir()
+            self._config["log_dir"] = log_dir
 
     def get_entry(self, name: str):
         return self._config[name]
@@ -80,12 +88,3 @@ class DataConf(Conf):
 
     def get_inference_parameters(self):
         return self.get_entry("inference")
-
-
-#
-# conf = Config(r"config/normalized_sequence_distance_matrix.yaml")
-# conf.get_callbacks()
-# conf.get_entry("epochs")
-
-# conf = DataConf(r"/home/palnak/Workspace/Studium/courseWork/IVU/config/data.yaml")
-# print(conf.get_sub_value_entry("inference", "model_pth"))

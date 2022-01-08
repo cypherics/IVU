@@ -1,7 +1,9 @@
+from collections import defaultdict
+
 import numpy as np
 import tensorflow
 from ivu.conf import DataConf
-from ivu.dataset import VideoInferenceInputData
+from ivu.data.infer import VideoInferenceInputData
 
 
 class Inference:
@@ -25,14 +27,17 @@ class Inference:
             **{**pose_estimator_param, **video_param, **inference_param}
         )
 
+        predictions = defaultdict(list)
         for (
             file_iterator,
             file,
+            frame,
             input_data,
         ) in video_inference.data_for_normalized_distance_matrix():
             input_data = np.expand_dims(input_data, axis=0)
             prediction = self._model.predict(input_data)
-            print(tensorflow.argmax(prediction))
+            predictions[file].append(np.argmax(prediction))
+            print(np.argmax(prediction))
 
     @classmethod
     def init_inference_from_config(cls, pth):

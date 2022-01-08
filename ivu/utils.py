@@ -1,6 +1,7 @@
 import pickle
 import os
 import random
+import tempfile
 from collections import defaultdict
 from typing import List
 
@@ -14,6 +15,33 @@ from ivu.pose_estimator.pose_landmarks import (
     landmarks_to_embedding,
     Pose16LandmarksBodyModel,
 )
+
+
+def log_in_tmp_dir():
+    # https://stackoverflow.com/questions/847850/cross-platform-way-of-getting-temp-directory-in-python
+    log_dir = os.path.join(tempfile.gettempdir(), "ivu_logs")
+    if not os.path.exists:
+        os.makedirs(log_dir)
+    return log_dir
+
+
+def log_in_current_dir():
+    log_dir = os.path.join(os.getcwd(), "ivu_logs")
+    if not os.path.exists:
+        os.makedirs(log_dir)
+    return log_dir
+
+
+def get_class_association(df):
+    class_ass = dict()
+    for i in range(0, 7):
+        d = filter_data_frame(df, "class_label_index", i)["class_label"]
+        class_ass[i] = np.unique(d.to_numpy())[0]
+    return class_ass
+
+
+def filter_data_frame(df: pd.DataFrame, name, value):
+    return df.loc[df[name] == value]
 
 
 def shuffle_two_list_together(x, y):
@@ -141,10 +169,8 @@ def get_body_normalized_key_points(pose_estimator, rgb_input):
 
 
 def get_normalized_distance_matrix(pose_estimator, rgb_input):
-    body_key_points = pose_estimator.get_key_points_from_image(rgb_input)
-    return squareform(
-        pdist(normalize_body_key_points(body_key_points, Pose16LandmarksBodyModel))
-    )
+    body_key_points = get_body_normalized_key_points(pose_estimator, rgb_input)
+    return get_distance_matrix_from_key_points(body_key_points)
 
 
 def get_normalized_distance_matrix_from_body_key_points(body_key_points):

@@ -1,4 +1,4 @@
-data_dir:
+data_dir: /home/palnak/Workspace/Studium/workout_assitant/video_dataset/subset_2/Good
 save_dir:
 
 pose:
@@ -8,10 +8,10 @@ pose:
 video:
   frame_width: -1
   frame_height: -1
-  stride: 300
+  stride: 128
 
 inference:
-  model_pth:
+  model_pth: /home/palnak/Workspace/Studium/courseWork/IVU/logs/20220107-194454/chk
   infer_for: normalized_distance_matrix
 
 

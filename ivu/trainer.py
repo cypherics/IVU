@@ -1,5 +1,5 @@
 from ivu.conf import TrainConf
-from ivu.dataset import TrainInputData
+from ivu.data.training import TrainInputData
 
 
 class Trainer:

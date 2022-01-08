@@ -24,7 +24,7 @@
 #### Generate Data From images
 
 ```python
-from ivu.dataset import training_data_set_over_images
+from ivu.data.creation import training_data_set_over_images
 
 where_is_my_data = "where_is_my_data_path"
 where_i_want_to_store_my_data = "where_i_want_to_store_my_data_path"
@@ -34,7 +34,7 @@ training_data_set_over_images(where_is_my_data, where_i_want_to_store_my_data)
 #### Generate Data from Videos
 
 ```python
-from ivu.dataset import training_data_set_over_videos
+from ivu.data.creation import training_data_set_over_videos
 
 where_is_my_data = "where_is_my_data_path"
 where_i_want_to_store_my_data = "where_i_want_to_store_my_data_path"
