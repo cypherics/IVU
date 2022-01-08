@@ -1,98 +1,22 @@
 import os
-from statistics import mode
-from collections import defaultdict, Counter
+from collections import defaultdict
 
 import cv2
 import numpy as np
 
 from py_oneliner import one_liner
-from scipy.spatial.distance import squareform, pdist
 
+from ivu.conf import DataConf
 from ivu.pose_estimator.base_pose_estimator import PoseEstimationFailedError
 from ivu.pose_estimator.media_pipe_estimator import get_media_pipe_pose_estimator
-from ivu.pose_estimator.pose_landmarks import (
-    Pose16LandmarksBodyModel,
-    landmarks_to_embedding,
-)
+
+
 from ivu.utils import (
     folder_generator,
     save_pickle,
     read_video,
-    train_val_split,
-    shuffle_two_list_together,
-    one_hot,
-    load_pickle,
+    get_pose_data_from_rgb_frame,
 )
-
-
-class TrainInputData:
-    def __init__(self, x, y):
-        self._x = x
-        self._y = y
-
-    def create_sequence_data(self, validation_split: float = None, stride: int = 300):
-        _x = list()
-        _y = list()
-
-        n_samples = self._x.shape[0]
-        indices = np.arange(n_samples)
-
-        for start in range(0, n_samples, stride):
-            end = min(start + stride, n_samples)
-
-            batch_idx = indices[start:end]
-            if len(batch_idx) < stride:
-                batch_idx = indices[start - stride + end - start : end]
-
-            _x.append(self._x[batch_idx])
-            _y.append(mode(self._y[batch_idx]))
-            # _y.append(Counter(y[batch_idx]).most_common(1)[0][0])
-
-        _x_shuffled, _y_shuffled = shuffle_two_list_together(_x, _y)
-        if validation_split is not None:
-            _x_train, _y_train, _x_val, _y_val = train_val_split(
-                np.array(_x_shuffled), np.array(_y_shuffled)
-            )
-        else:
-            _x_train, _y_train, _x_val, _y_val = (
-                np.array(_x_shuffled),
-                np.array(_y_shuffled),
-                None,
-                None,
-            )
-        return (
-            _x_train,
-            one_hot(_y_train),
-        ), None if _x_val is None or _y_val is None else (_x_val, one_hot(_y_val))
-
-    @classmethod
-    def data_with_normalized_key_points(cls, pth):
-        pass
-
-    @classmethod
-    def data_with_normalized_distance_matrix(cls, pth):
-        df = load_pickle(pth)
-        subset = df[
-            [
-                "normalized_distance_matrix",
-                "class_label",
-                "class_label_index",
-                "frame_details",
-                "frame_number",
-            ]
-        ]
-        x = np.array(subset["normalized_distance_matrix"].tolist())
-        y = np.array(subset["class_label_index"].tolist())
-
-        return cls(x, y)
-
-    @classmethod
-    def data_with_distance_matrix(cls, pth):
-        pass
-
-    @classmethod
-    def data_with_key_points(cls, pth):
-        pass
 
 
 class GeneratedData:
@@ -112,26 +36,7 @@ class GeneratedData:
         save_pickle(self._meta, pth)
 
 
-def get_pose_data_from_rgb_frame(frame, pose_estimator):
-    body_key_points = pose_estimator.get_key_points_from_image(frame)
-    distance_matrix = squareform(pdist(np.array(body_key_points)))
-
-    normalized_body_key_points = landmarks_to_embedding(
-        body_key_points, Pose16LandmarksBodyModel
-    )
-    normalized_distance_matrix = squareform(
-        pdist(np.array(normalized_body_key_points[0]))
-    )
-
-    return (
-        body_key_points,
-        distance_matrix,
-        normalized_body_key_points,
-        normalized_distance_matrix,
-    )
-
-
-def generate_data_over_images(
+def generate_training_data_over_images(
     data_set_dir: str,
     pose_estimator_complexity=1,
     use_pose_estimator_over_static_image=True,
@@ -184,7 +89,7 @@ def generate_data_over_images(
     return data
 
 
-def generate_data_over_videos(
+def generate_training_data_over_videos(
     data_set_dir: str,
     pose_estimator_complexity=1,
     use_pose_estimator_over_static_image=True,
@@ -245,13 +150,13 @@ def create_sequence_data_set_over_videos(data_set_path, frame_count):
     pass
 
 
-def data_set_over_images(
+def training_data_set_over_images(
     data_set_dir: str,
     save_dir: str,
     pose_estimator_complexity=1,
     use_pose_estimator_over_static_image=True,
 ):
-    data = generate_data_over_images(
+    data = generate_training_data_over_images(
         data_set_dir=data_set_dir,
         pose_estimator_complexity=pose_estimator_complexity,
         use_pose_estimator_over_static_image=use_pose_estimator_over_static_image,
@@ -259,7 +164,7 @@ def data_set_over_images(
     data.store(save_dir=save_dir)
 
 
-def data_set_over_videos(
+def training_data_set_over_videos(
     data_set_dir: str,
     save_dir: str,
     pose_estimator_complexity=1,
@@ -267,7 +172,7 @@ def data_set_over_videos(
     width=-1,
     height=-1,
 ):
-    data = generate_data_over_videos(
+    data = generate_training_data_over_videos(
         data_set_dir=data_set_dir,
         pose_estimator_complexity=pose_estimator_complexity,
         use_pose_estimator_over_static_image=use_pose_estimator_over_static_image,
@@ -275,3 +180,13 @@ def data_set_over_videos(
         frame_height=height,
     )
     data.store(save_dir=save_dir)
+
+
+def training_data_set_over_videos_using_conf(pth):
+    conf = DataConf(pth)
+    training_data_set_over_videos(
+        data_set_dir=conf.get_entry("data_dir"),
+        save_dir=conf.get_entry("save_dir"),
+        **conf.get_pose_estimators_parameters(),
+        **conf.get_video_parameters(),
+    )

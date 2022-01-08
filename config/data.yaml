@@ -1,0 +1,17 @@
+data_dir: /home/palnak/Workspace/Studium/workout_assitant/video_dataset/subset_2/Good
+save_dir:
+
+pose:
+  pose_estimator_complexity: 1
+  use_pose_estimator_over_static_image: True
+
+video:
+  frame_width: -1
+  frame_height: -1
+  stride: 128
+
+inference:
+  model_pth: /home/palnak/Workspace/Studium/courseWork/IVU/logs/20220107-194454/chk
+  infer_for: normalized_distance_matrix
+
+

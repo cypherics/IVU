@@ -1,6 +1,6 @@
 data:
   validation_split: 0.2
-  stride: 300
+  stride: 128
 
 optimizer:
   name: Adam
@@ -18,7 +18,7 @@ callbacks:
   EarlyStopping:
     parameters:
       min_delta: 0.001
-      patience: 5
+      patience: 8
       verbose: 1
 
   ModelCheckpoint:
@@ -40,4 +40,4 @@ model:
     input_features: 136
     n_classes: 7
 
-log_dir : path_to_where_logs_will_be_stored
+log_dir : logs/
