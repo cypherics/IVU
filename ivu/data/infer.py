@@ -1,4 +1,6 @@
 import os
+
+import decord
 import numpy as np
 
 from py_oneliner import one_liner
@@ -39,38 +41,33 @@ class VideoInferenceInputData:
         stride_idx = indices[0 - stride + end - 0 : end]
         return x[stride_idx]
 
-    def data_for_normalized_distance_matrix(self):
-
-        files = os.listdir(self._data_dir)
-        for iterator, file in enumerate(files):
-            input_data = list()
-            file_path = os.path.join(*[self._data_dir, file])
-            vr = read_video(
-                file_path, width=self._frame_width, height=self._frame_height
+    def data_for_normalized_distance_matrix(self, video_reader: decord.VideoReader):
+        input_data = list()
+        frame_indices = list()
+        for stride_iterator, frame_idx in enumerate(range(len(video_reader))):
+            one_liner.one_line(
+                tag="[FRAMES",
+                tag_data=f"{frame_idx + 1}/{len(video_reader)}]",
+                tag_color="red",
+                tag_data_color="red",
             )
-
-            for stride_iterator, frame in enumerate(range(len(vr))):
-                one_liner.one_line(
-                    tag=f"PROGRESS [VIDEOS: {iterator + 1}/{len(files)}] [CURRENT FILE : {file}]",
-                    tag_data=f"[FRAMES : {frame + 1}/{len(vr)}]",
-                    to_reset_data=True,
-                    tag_color="red",
-                    tag_data_color="red",
+            frame = video_reader[frame_idx].asnumpy()
+            normalized_distance_matrix = get_normalized_distance_matrix(
+                pose_estimator=self._pose_estimator,
+                rgb_input=frame,
+            )
+            input_data.append(
+                normalized_distance_matrix[
+                    np.triu_indices(normalized_distance_matrix.shape[0], k=1)
+                ]
+            )
+            frame_indices.append(frame_idx)
+            if (stride_iterator + 1) % self._stride == 0:
+                yield frame_indices, np.array(input_data)
+            elif (
+                stride_iterator + 1 == len(video_reader)
+                and (stride_iterator + 1) % self._stride != 0
+            ):
+                yield frame_indices, self._adjust_frame_for_video_frame(
+                    np.array(input_data), self._stride
                 )
-                normalized_distance_matrix = get_normalized_distance_matrix(
-                    pose_estimator=self._pose_estimator, rgb_input=vr[frame].asnumpy()
-                )
-                input_data.append(
-                    normalized_distance_matrix[
-                        np.triu_indices(normalized_distance_matrix.shape[0], k=1)
-                    ]
-                )
-                if (stride_iterator + 1) % self._stride == 0:
-                    yield iterator, file, frame, np.array(input_data)
-                elif (
-                    stride_iterator + 1 == len(vr)
-                    and (stride_iterator + 1) % self._stride != 0
-                ):
-                    yield iterator, file, frame, self._adjust_frame_for_video_frame(
-                        np.array(input_data), self._stride
-                    )
