@@ -1,13 +1,10 @@
-import os
-
 import decord
 import numpy as np
 
 from py_oneliner import one_liner
 
 from ivu.utils import (
-    read_video,
-    get_normalized_distance_matrix,
+    inference_function_dispatcher,
 )
 from ivu.pose_estimator.media_pipe_estimator import get_media_pipe_pose_estimator
 
@@ -21,6 +18,7 @@ class VideoInferenceInputData:
         frame_width=-1,
         frame_height=-1,
         stride=128,
+        infer_for="normalized_distance_matrix",
         **kwargs,
     ):
         self._pose_estimator = get_media_pipe_pose_estimator(
@@ -31,6 +29,7 @@ class VideoInferenceInputData:
         self._frame_width = frame_width
         self._frame_height = frame_height
         self._stride = stride
+        self._infer_for = inference_function_dispatcher()[infer_for]
 
     @staticmethod
     def _adjust_frame_for_video_frame(x, stride):
@@ -41,7 +40,7 @@ class VideoInferenceInputData:
         stride_idx = indices[0 - stride + end - 0 : end]
         return x[stride_idx]
 
-    def data_for_normalized_distance_matrix(self, video_reader: decord.VideoReader):
+    def inference_data_gen(self, video_reader: decord.VideoReader):
         input_data = list()
         frame_indices = list()
         for stride_iterator, frame_idx in enumerate(range(len(video_reader))):
@@ -52,15 +51,11 @@ class VideoInferenceInputData:
                 tag_data_color="red",
             )
             frame = video_reader[frame_idx].asnumpy()
-            normalized_distance_matrix = get_normalized_distance_matrix(
+            pose_data = self._infer_for(
                 pose_estimator=self._pose_estimator,
                 rgb_input=frame,
             )
-            input_data.append(
-                normalized_distance_matrix[
-                    np.triu_indices(normalized_distance_matrix.shape[0], k=1)
-                ]
-            )
+            input_data.append(pose_data)
             frame_indices.append(frame_idx)
             if (stride_iterator + 1) % self._stride == 0:
                 yield frame_indices, np.array(input_data)

@@ -52,7 +52,21 @@ class TrainInputData:
 
     @classmethod
     def data_with_normalized_key_points(cls, pth):
-        pass
+        df = load_pickle(pth)
+        subset = df[
+            [
+                "normalized_key_points",
+                "class_label",
+                "class_label_index",
+                "frame_details",
+                "frame_number",
+            ]
+        ]
+        x = np.array(subset["normalized_key_points"].tolist())
+        y = np.array(subset["class_label_index"].tolist())
+
+        x = x.reshape(x.shape[0], -1)
+        return cls(x, y)
 
     @classmethod
     def data_with_normalized_distance_matrix(cls, pth):
@@ -73,7 +87,20 @@ class TrainInputData:
 
     @classmethod
     def data_with_distance_matrix(cls, pth):
-        pass
+        df = load_pickle(pth)
+        subset = df[
+            [
+                "distance_matrix",
+                "class_label",
+                "class_label_index",
+                "frame_details",
+                "frame_number",
+            ]
+        ]
+        x = np.array(subset["distance_matrix"].tolist())
+        y = np.array(subset["class_label_index"].tolist())
+
+        return cls(x, y)
 
     @classmethod
     def data_with_key_points(cls, pth):

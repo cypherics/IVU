@@ -25,9 +25,7 @@ class Inference:
         for (
             frame_indices,
             input_data,
-        ) in video_inference.data_for_normalized_distance_matrix(
-            video_reader=video_reader
-        ):
+        ) in video_inference.inference_data_gen(video_reader=video_reader):
             input_data = np.expand_dims(input_data, axis=0)
             prediction = self._model.predict(input_data)
             predictions[file].append(np.argmax(prediction))

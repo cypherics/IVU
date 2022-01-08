@@ -30,8 +30,15 @@ class Trainer:
             print(f"VAL METRIC : {model.evaluate(*self._val_data)}")
 
     @classmethod
-    def train_with_normalized_key_points(cls):
-        raise NotImplementedError
+    def train_with_normalized_key_points(cls, data_pth, conf_pth):
+        input_data = TrainInputData.data_with_normalized_key_points(data_pth)
+        conf = TrainConf(conf_pth)
+
+        parameters = conf.get_entry("data")
+        train_data, val_data = input_data.create_sequence_data(
+            stride=parameters["stride"], validation_split=parameters["validation_split"]
+        )
+        return cls(train_data, val_data, conf)
 
     @classmethod
     def train_with_normalized_distance_matrix(cls, data_pth, conf_pth):
@@ -45,8 +52,15 @@ class Trainer:
         return cls(train_data, val_data, conf)
 
     @classmethod
-    def train_with_distance_matrix(cls):
-        raise NotImplementedError
+    def train_with_distance_matrix(cls, data_pth, conf_pth):
+        input_data = TrainInputData.data_with_distance_matrix(data_pth)
+        conf = TrainConf(conf_pth)
+
+        parameters = conf.get_entry("data")
+        train_data, val_data = input_data.create_sequence_data(
+            stride=parameters["stride"], validation_split=parameters["validation_split"]
+        )
+        return cls(train_data, val_data, conf)
 
     @classmethod
     def train_with_key_points(cls):

@@ -1,0 +1,43 @@
+data:
+  validation_split: 0.2
+  stride: 128
+
+optimizer:
+  name: Adam
+  parameters:
+    lr: 0.001
+
+callbacks:
+  ReduceLROnPlateau:
+    parameters:
+      patience: 3
+      verbose: 1
+      factor: 0.2
+      min_lr: 0.000001
+
+  EarlyStopping:
+    parameters:
+      min_delta: 0.001
+      patience: 8
+      verbose: 1
+
+  ModelCheckpoint:
+    parameters:
+      verbose: 1
+      save_best_only: True
+      save_weights_only: False
+loss:
+  name: CategoricalCrossentropy
+  parameters:
+    from_logits: True
+
+batch_size: 32
+epochs: 300
+
+model:
+  name: temporal_model
+  parameters:
+    input_features: 51
+    n_classes: 7
+
+log_dir : logs/

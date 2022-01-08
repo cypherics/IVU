@@ -1,4 +1,3 @@
-import pickle
 import os
 import random
 import tempfile
@@ -177,3 +176,22 @@ def get_normalized_distance_matrix_from_body_key_points(body_key_points):
     return squareform(
         pdist(normalize_body_key_points(body_key_points, Pose16LandmarksBodyModel))
     )
+
+
+def get_inference_distance_matrix(pose_estimator, rgb_input):
+    dist_mat = get_distance_matrix(pose_estimator, rgb_input)
+
+    return dist_mat[np.triu_indices(dist_mat.shape[0], k=1)]
+
+
+def get_inference_normalized_distance_matrix(pose_estimator, rgb_input):
+    dist_mat = get_normalized_distance_matrix(pose_estimator, rgb_input)
+    return dist_mat[np.triu_indices(dist_mat.shape[0], k=1)]
+
+
+def inference_function_dispatcher():
+    return {
+        "normalized_distance_matrix": get_inference_normalized_distance_matrix,
+        "distance_matrix": get_inference_distance_matrix,
+        "normalized_key_points": get_body_normalized_key_points,
+    }
