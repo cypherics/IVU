@@ -1,5 +1,5 @@
 data_dir: /home/palnak/Workspace/Studium/workout_assitant/video_dataset/subset_2/Good
-save_dir:
+save_dir: /home/palnak/Workspace/Studium/courseWork/IVU/output
 
 pose:
   pose_estimator_complexity: 1

@@ -2,11 +2,13 @@ import os
 from collections import defaultdict
 
 import numpy as np
+import skvideo.io
 import tensorflow
 from py_oneliner import one_liner
 
 from ivu.conf import DataConf
 from ivu.data.infer import VideoInferenceInputData
+from ivu.pose_estimator.base_pose_estimator import PoseEstimationFailedError
 from ivu.utils import read_video
 
 
@@ -22,20 +24,23 @@ class Inference:
 
     def infer_video(self, video_reader, video_inference, file):
         predictions = defaultdict(list)
+        my_frames_collection = list()
         for (
-            frame_indices,
+            my_frames,
             input_data,
         ) in video_inference.inference_data_gen(video_reader=video_reader):
             input_data = np.expand_dims(input_data, axis=0)
             prediction = self._model.predict(input_data)
             predictions[file].append(np.argmax(prediction))
-        return predictions
+            my_frames_collection.extend(my_frames)
+        return my_frames_collection, predictions
 
     def run(self):
 
         pose_estimator_param = self._conf.get_pose_estimators_parameters()
         video_param = self._conf.get_video_parameters()
         inference_param = self._conf.get_inference_parameters()
+        save_dir = self._conf.get_entry("save_dir")
 
         video_inference = VideoInferenceInputData(
             data_dir=self._conf.get_entry("data_dir"),
@@ -57,9 +62,15 @@ class Inference:
                 tag_color="red",
                 tag_data_color="red",
             )
-            predictions = self.infer_video(
+            my_frames_collection, predictions = self.infer_video(
                 video_reader=vr, video_inference=video_inference, file=file
             )
+
+            skvideo.io.vwrite(
+                os.path.join(save_dir, f"output_{file.split('.')[0]}.mp4"),
+                np.array(my_frames_collection).astype(np.uint8),
+            )
+
             print(predictions)
 
     @classmethod

@@ -162,9 +162,8 @@ def get_distance_matrix_from_key_points(body_key_points):
 
 
 def get_body_normalized_key_points(pose_estimator, rgb_input):
-    return normalize_body_key_points(
-        pose_estimator.get_key_points_from_image(rgb_input), Pose16LandmarksBodyModel
-    )
+    key_points = pose_estimator.get_key_points_from_image(rgb_input)
+    return key_points, normalize_body_key_points(key_points, Pose16LandmarksBodyModel)
 
 
 def get_normalized_distance_matrix(pose_estimator, rgb_input):
@@ -179,14 +178,16 @@ def get_normalized_distance_matrix_from_body_key_points(body_key_points):
 
 
 def get_inference_distance_matrix(pose_estimator, rgb_input):
-    dist_mat = get_distance_matrix(pose_estimator, rgb_input)
+    key_points = pose_estimator.get_key_points_from_image(rgb_input)
+    dist_mat = get_distance_matrix_from_key_points(key_points)
 
-    return dist_mat[np.triu_indices(dist_mat.shape[0], k=1)]
+    return key_points, dist_mat[np.triu_indices(dist_mat.shape[0], k=1)]
 
 
 def get_inference_normalized_distance_matrix(pose_estimator, rgb_input):
-    dist_mat = get_normalized_distance_matrix(pose_estimator, rgb_input)
-    return dist_mat[np.triu_indices(dist_mat.shape[0], k=1)]
+    key_points = pose_estimator.get_key_points_from_image(rgb_input)
+    dist_mat = get_normalized_distance_matrix_from_body_key_points(key_points)
+    return key_points, dist_mat[np.triu_indices(dist_mat.shape[0], k=1)]
 
 
 def inference_function_dispatcher():

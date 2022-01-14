@@ -1,8 +1,11 @@
+from collections import OrderedDict
+
 import decord
 import numpy as np
 
 from py_oneliner import one_liner
 
+from ivu.pose_estimator.base_pose_estimator import PoseEstimationFailedError
 from ivu.utils import (
     inference_function_dispatcher,
 )
@@ -42,7 +45,8 @@ class VideoInferenceInputData:
 
     def inference_data_gen(self, video_reader: decord.VideoReader):
         input_data = list()
-        frame_indices = list()
+        my_frames = list()
+
         for stride_iterator, frame_idx in enumerate(range(len(video_reader))):
             one_liner.one_line(
                 tag="[FRAMES",
@@ -51,18 +55,22 @@ class VideoInferenceInputData:
                 tag_data_color="red",
             )
             frame = video_reader[frame_idx].asnumpy()
-            pose_data = self._infer_for(
-                pose_estimator=self._pose_estimator,
-                rgb_input=frame,
-            )
-            input_data.append(pose_data)
-            frame_indices.append(frame_idx)
-            if (stride_iterator + 1) % self._stride == 0:
-                yield frame_indices, np.array(input_data)
-            elif (
-                stride_iterator + 1 == len(video_reader)
-                and (stride_iterator + 1) % self._stride != 0
-            ):
-                yield frame_indices, self._adjust_frame_for_video_frame(
-                    np.array(input_data), self._stride
+            try:
+                key_points, pose_data = self._infer_for(
+                    pose_estimator=self._pose_estimator,
+                    rgb_input=frame,
                 )
+                input_data.append(pose_data)
+                my_frames.append(self._pose_estimator.get_annotated_frame())
+
+                if (stride_iterator + 1) % self._stride == 0:
+                    yield my_frames, np.array(input_data)
+                elif (
+                    stride_iterator + 1 == len(video_reader)
+                    and (stride_iterator + 1) % self._stride != 0
+                ):
+                    yield my_frames, self._adjust_frame_for_video_frame(
+                        np.array(input_data), self._stride
+                    )
+            except PoseEstimationFailedError:
+                pass
