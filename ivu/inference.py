@@ -8,7 +8,6 @@ from py_oneliner import one_liner
 
 from ivu.conf import DataConf
 from ivu.data.infer import VideoInferenceInputData
-from ivu.pose_estimator.base_pose_estimator import PoseEstimationFailedError
 from ivu.utils import read_video
 
 
