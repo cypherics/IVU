@@ -46,7 +46,7 @@ class VideoInferenceInputData:
     def inference_data_gen(self, video_reader: decord.VideoReader):
         input_data = list()
         my_frames = list()
-
+        dumpy_ = dict()
         for stride_iterator, frame_idx in enumerate(range(len(video_reader))):
             one_liner.one_line(
                 tag="[FRAMES",
@@ -62,6 +62,7 @@ class VideoInferenceInputData:
                 )
                 input_data.append(pose_data)
                 my_frames.append(self._pose_estimator.get_annotated_frame())
+                dumpy_[frame_idx] = self._pose_estimator.get_annotated_frame()
 
                 if (stride_iterator + 1) % self._stride == 0:
                     yield my_frames, np.array(input_data)

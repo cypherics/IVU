@@ -1,4 +1,5 @@
 import os
+import cv2
 import random
 import tempfile
 from collections import defaultdict
@@ -196,3 +197,12 @@ def inference_function_dispatcher():
         "distance_matrix": get_inference_distance_matrix,
         "normalized_key_points": get_body_normalized_key_points,
     }
+
+
+def write_to_video(pth, image_sequence: list, fps: int, width: int, height: int):
+    fourcc = cv2.VideoWriter_fourcc(*"mp4v")
+    video = cv2.VideoWriter(pth, fourcc, fps, (width, height))
+    for i in range(0, len(image_sequence)):
+        video.write(cv2.cvtColor(image_sequence[i], cv2.COLOR_RGB2BGR))
+    cv2.destroyAllWindows()
+    video.release()

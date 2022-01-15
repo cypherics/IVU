@@ -2,13 +2,12 @@ import os
 from collections import defaultdict
 
 import numpy as np
-import skvideo.io
 import tensorflow
 from py_oneliner import one_liner
 
 from ivu.conf import DataConf
 from ivu.data.infer import VideoInferenceInputData
-from ivu.utils import read_video
+from ivu.utils import read_video, write_to_video
 
 
 class Inference:
@@ -31,7 +30,7 @@ class Inference:
             input_data = np.expand_dims(input_data, axis=0)
             prediction = self._model.predict(input_data)
             predictions[file].append(np.argmax(prediction))
-            my_frames_collection.extend(my_frames)
+            my_frames_collection = my_frames
         return my_frames_collection, predictions
 
     def run(self):
@@ -54,6 +53,8 @@ class Inference:
                 width=video_param["frame_width"],
                 height=video_param["frame_height"],
             )
+            _, height, width, _ = vr[:].shape
+            fps = int(vr.get_avg_fps())
             one_liner.one_line(
                 tag=f"PROGRESS",
                 tag_data=f"[VIDEOS: {iterator + 1}/{len(files)}] [CURRENT FILE : {file}]",
@@ -65,9 +66,12 @@ class Inference:
                 video_reader=vr, video_inference=video_inference, file=file
             )
 
-            skvideo.io.vwrite(
-                os.path.join(save_dir, f"output_{file.split('.')[0]}.mp4"),
-                np.array(my_frames_collection).astype(np.uint8),
+            write_to_video(
+                os.path.join(save_dir, f"output_{os.path.splitext(file)[0]}.mp4"),
+                image_sequence=my_frames_collection,
+                fps=fps,
+                width=width,
+                height=height,
             )
 
             print(predictions)
