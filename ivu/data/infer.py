@@ -1,4 +1,4 @@
-from collections import OrderedDict
+from collections import defaultdict
 
 import decord
 import numpy as np
@@ -34,6 +34,11 @@ class VideoInferenceInputData:
         self._stride = stride
         self._infer_for = inference_function_dispatcher()[infer_for]
 
+        self._meta = None
+
+    def _reset_meta(self):
+        self._meta = defaultdict(list)
+
     @staticmethod
     def _adjust_frame_for_video_frame(x, stride):
         n_samples = x.shape[0]
@@ -44,9 +49,7 @@ class VideoInferenceInputData:
         return x[stride_idx]
 
     def inference_data_gen(self, video_reader: decord.VideoReader):
-        input_data = list()
-        my_frames = list()
-        dumpy_ = dict()
+        self._reset_meta()
         for stride_iterator, frame_idx in enumerate(range(len(video_reader))):
             one_liner.one_line(
                 tag="[FRAMES",
@@ -60,18 +63,20 @@ class VideoInferenceInputData:
                     pose_estimator=self._pose_estimator,
                     rgb_input=frame,
                 )
-                input_data.append(pose_data)
-                my_frames.append(self._pose_estimator.get_annotated_frame())
-                dumpy_[frame_idx] = self._pose_estimator.get_annotated_frame()
+                self._meta["pose_data"].append(pose_data)
+                self._meta["my_frames"].append(self._pose_estimator.get_annotated_frame())
 
                 if (stride_iterator + 1) % self._stride == 0:
-                    yield my_frames, np.array(input_data)
+                    yield self._meta["my_frames"], np.array(self._meta["pose_data"])
+                    self._reset_meta()
                 elif (
                     stride_iterator + 1 == len(video_reader)
                     and (stride_iterator + 1) % self._stride != 0
                 ):
-                    yield my_frames, self._adjust_frame_for_video_frame(
-                        np.array(input_data), self._stride
+                    yield self._meta["my_frames"], self._adjust_frame_for_video_frame(
+                        np.array(self._meta["pose_data"]), self._stride
                     )
+                    self._reset_meta()
+
             except PoseEstimationFailedError:
                 pass

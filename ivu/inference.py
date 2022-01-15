@@ -30,7 +30,7 @@ class Inference:
             input_data = np.expand_dims(input_data, axis=0)
             prediction = self._model.predict(input_data)
             predictions[file].append(np.argmax(prediction))
-            my_frames_collection = my_frames
+            my_frames_collection.extend(my_frames)
         return my_frames_collection, predictions
 
     def run(self):
