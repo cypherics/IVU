@@ -9,6 +9,16 @@ from ivu.conf import DataConf
 from ivu.data.infer import VideoInferenceInputData
 from ivu.utils import read_video, write_to_video
 
+LABEL_ASSOCIATION = {
+    0: "back round",
+    1: "back warp",
+    2: "bad head",
+    3: "inner thigh",
+    4: "shallow",
+    5: "bad toe",
+    6: "good",
+}
+
 
 class Inference:
     def __init__(self, model: tensorflow.keras.Model, conf: DataConf):
@@ -21,17 +31,20 @@ class Inference:
         return model
 
     def infer_video(self, video_reader, video_inference, file):
-        predictions = defaultdict(list)
         my_frames_collection = list()
+        predictions_over_frame = list()
+        video_stride = self._conf.get_video_parameters()["stride"]
         for (
             my_frames,
             input_data,
         ) in video_inference.inference_data_gen(video_reader=video_reader):
             input_data = np.expand_dims(input_data, axis=0)
             prediction = self._model.predict(input_data)
-            predictions[file].append(np.argmax(prediction))
+            predictions_over_frame.extend(
+                [LABEL_ASSOCIATION[int(np.argmax(prediction))]] * video_stride
+            )
             my_frames_collection.extend(my_frames)
-        return my_frames_collection, predictions
+        return my_frames_collection, predictions_over_frame
 
     def run(self):
 
@@ -69,12 +82,11 @@ class Inference:
             write_to_video(
                 os.path.join(save_dir, f"output_{os.path.splitext(file)[0]}.mp4"),
                 image_sequence=my_frames_collection,
+                text_per_frame=predictions,
                 fps=fps,
                 width=width,
                 height=height,
             )
-
-            print(predictions)
 
     @classmethod
     def init_inference_from_config(cls, pth):

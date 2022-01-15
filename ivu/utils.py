@@ -199,10 +199,24 @@ def inference_function_dispatcher():
     }
 
 
-def write_to_video(pth, image_sequence: list, fps: int, width: int, height: int):
+def write_to_video(
+    pth, image_sequence: list, text_per_frame: list, fps: int, width: int, height: int
+):
     fourcc = cv2.VideoWriter_fourcc(*"mp4v")
     video = cv2.VideoWriter(pth, fourcc, fps, (width, height))
     for i in range(0, len(image_sequence)):
-        video.write(cv2.cvtColor(image_sequence[i], cv2.COLOR_RGB2BGR))
+        frame = image_sequence[i]
+        cv2.putText(
+            frame,
+            text_per_frame[i],
+            (10, 450),
+            cv2.FONT_HERSHEY_SIMPLEX,
+            1,
+            (0, 255, 0),
+            1,
+            cv2.LINE_AA,
+        )
+
+        video.write(cv2.cvtColor(frame, cv2.COLOR_RGB2BGR))
     cv2.destroyAllWindows()
     video.release()

@@ -64,7 +64,9 @@ class VideoInferenceInputData:
                     rgb_input=frame,
                 )
                 self._meta["pose_data"].append(pose_data)
-                self._meta["my_frames"].append(self._pose_estimator.get_annotated_frame())
+                self._meta["my_frames"].append(
+                    self._pose_estimator.get_annotated_frame()
+                )
 
                 if (stride_iterator + 1) % self._stride == 0:
                     yield self._meta["my_frames"], np.array(self._meta["pose_data"])
