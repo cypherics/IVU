@@ -1,4 +1,5 @@
 import os
+import cv2
 import random
 import tempfile
 from collections import defaultdict
@@ -162,9 +163,8 @@ def get_distance_matrix_from_key_points(body_key_points):
 
 
 def get_body_normalized_key_points(pose_estimator, rgb_input):
-    return normalize_body_key_points(
-        pose_estimator.get_key_points_from_image(rgb_input), Pose16LandmarksBodyModel
-    )
+    key_points = pose_estimator.get_key_points_from_image(rgb_input)
+    return key_points, normalize_body_key_points(key_points, Pose16LandmarksBodyModel)
 
 
 def get_normalized_distance_matrix(pose_estimator, rgb_input):
@@ -179,19 +179,36 @@ def get_normalized_distance_matrix_from_body_key_points(body_key_points):
 
 
 def get_inference_distance_matrix(pose_estimator, rgb_input):
-    dist_mat = get_distance_matrix(pose_estimator, rgb_input)
+    key_points = pose_estimator.get_key_points_from_image(rgb_input)
+    dist_mat = get_distance_matrix_from_key_points(key_points)
 
-    return dist_mat[np.triu_indices(dist_mat.shape[0], k=1)]
+    return key_points, dist_mat[np.triu_indices(dist_mat.shape[0], k=1)]
 
 
 def get_inference_normalized_distance_matrix(pose_estimator, rgb_input):
-    dist_mat = get_normalized_distance_matrix(pose_estimator, rgb_input)
-    return dist_mat[np.triu_indices(dist_mat.shape[0], k=1)]
+    key_points = pose_estimator.get_key_points_from_image(rgb_input)
+    dist_mat = get_normalized_distance_matrix_from_body_key_points(key_points)
+    return key_points, dist_mat[np.triu_indices(dist_mat.shape[0], k=1)]
 
 
-def inference_function_dispatcher():
-    return {
-        "normalized_distance_matrix": get_inference_normalized_distance_matrix,
-        "distance_matrix": get_inference_distance_matrix,
-        "normalized_key_points": get_body_normalized_key_points,
-    }
+def write_to_video(
+    pth, image_sequence: list, text_per_frame: list, fps: int, width: int, height: int
+):
+    fourcc = cv2.VideoWriter_fourcc(*"mp4v")
+    video = cv2.VideoWriter(pth, fourcc, fps, (width, height))
+    for i in range(0, len(image_sequence)):
+        frame = image_sequence[i]
+        cv2.putText(
+            frame,
+            text_per_frame[i],
+            (10, 450),
+            cv2.FONT_HERSHEY_SIMPLEX,
+            1,
+            (0, 255, 0),
+            1,
+            cv2.LINE_AA,
+        )
+
+        video.write(cv2.cvtColor(frame, cv2.COLOR_RGB2BGR))
+    cv2.destroyAllWindows()
+    video.release()

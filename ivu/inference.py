@@ -7,7 +7,17 @@ from py_oneliner import one_liner
 
 from ivu.conf import DataConf
 from ivu.data.infer import VideoInferenceInputData
-from ivu.utils import read_video
+from ivu.utils import read_video, write_to_video
+
+LABEL_ASSOCIATION = {
+    0: "back round",
+    1: "back warp",
+    2: "bad head",
+    3: "inner thigh",
+    4: "shallow",
+    5: "bad toe",
+    6: "good",
+}
 
 
 class Inference:
@@ -21,21 +31,27 @@ class Inference:
         return model
 
     def infer_video(self, video_reader, video_inference, file):
-        predictions = defaultdict(list)
+        my_frames_collection = list()
+        predictions_over_frame = list()
+        video_stride = self._conf.get_video_parameters()["stride"]
         for (
-            frame_indices,
+            my_frames,
             input_data,
         ) in video_inference.inference_data_gen(video_reader=video_reader):
             input_data = np.expand_dims(input_data, axis=0)
             prediction = self._model.predict(input_data)
-            predictions[file].append(np.argmax(prediction))
-        return predictions
+            predictions_over_frame.extend(
+                [LABEL_ASSOCIATION[int(np.argmax(prediction))]] * video_stride
+            )
+            my_frames_collection.extend(my_frames)
+        return my_frames_collection, predictions_over_frame
 
     def run(self):
 
         pose_estimator_param = self._conf.get_pose_estimators_parameters()
         video_param = self._conf.get_video_parameters()
         inference_param = self._conf.get_inference_parameters()
+        save_dir = self._conf.get_entry("save_dir")
 
         video_inference = VideoInferenceInputData(
             data_dir=self._conf.get_entry("data_dir"),
@@ -50,6 +66,8 @@ class Inference:
                 width=video_param["frame_width"],
                 height=video_param["frame_height"],
             )
+            _, height, width, _ = vr[:].shape
+            fps = int(vr.get_avg_fps())
             one_liner.one_line(
                 tag=f"PROGRESS",
                 tag_data=f"[VIDEOS: {iterator + 1}/{len(files)}] [CURRENT FILE : {file}]",
@@ -57,10 +75,18 @@ class Inference:
                 tag_color="red",
                 tag_data_color="red",
             )
-            predictions = self.infer_video(
+            my_frames_collection, predictions = self.infer_video(
                 video_reader=vr, video_inference=video_inference, file=file
             )
-            print(predictions)
+
+            write_to_video(
+                os.path.join(save_dir, f"output_{os.path.splitext(file)[0]}.mp4"),
+                image_sequence=my_frames_collection,
+                text_per_frame=predictions,
+                fps=fps,
+                width=width,
+                height=height,
+            )
 
     @classmethod
     def init_inference_from_config(cls, pth):

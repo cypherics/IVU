@@ -1,5 +1,6 @@
 import numpy as np
 import mediapipe as mp
+import cv2
 
 from ivu.pose_estimator.base_pose_estimator import (
     AbstractPoseEstimator,
@@ -19,6 +20,7 @@ class PoseEstimatorMediaPipe(AbstractPoseEstimator):
         self.__compute_body_model_16_key_points()
 
         self.__init()
+        self._annotated_frame = None
 
     def __del__(self):
         self.__release()
@@ -31,6 +33,9 @@ class PoseEstimatorMediaPipe(AbstractPoseEstimator):
             smooth_landmarks=True,
         )
         self.pose = self.pose.__enter__()
+        self._mp_drawing = mp.solutions.drawing_utils
+        self._mp_drawing_styles = mp.solutions.drawing_styles
+        self._mp_pose = mp.solutions.pose
 
     def __release(self):
         try:
@@ -53,11 +58,22 @@ class PoseEstimatorMediaPipe(AbstractPoseEstimator):
         # visibility might be useful
         # landmarks = [(p.x, p.y, p.z, p.visibility) for p in results.pose_landmarks]
         key_points = [(p.x, p.y, p.z) for p in results.pose_landmarks.landmark]
+        self._annotated_frame = self.draw_over_frame(image, results.pose_landmarks)
         return (
             np.array(key_points)[self._model_16_key_points, :]
             if self.use_16_key_points
             else np.array(key_points)
         )
+
+    def draw_over_frame(self, frame, pose_land_marks):
+        self._mp_drawing.draw_landmarks(
+            frame,
+            pose_land_marks,
+            self._mp_pose.POSE_CONNECTIONS,
+            landmark_drawing_spec=self._mp_drawing_styles.get_default_pose_landmarks_style(),
+        )
+
+        return frame
 
     def get_key_points_from_video(self, **kwargs) -> np.ndarray:
         pass
@@ -66,6 +82,9 @@ class PoseEstimatorMediaPipe(AbstractPoseEstimator):
         names = [x.name for x in Pose16LandmarksBodyModel]
         names_media_pipe = [x.name for x in MediaPipePoseLandmarks]
         self._model_16_key_points = np.array([names_media_pipe.index(x) for x in names])
+
+    def get_annotated_frame(self):
+        return self._annotated_frame
 
 
 def get_media_pipe_pose_estimator(
