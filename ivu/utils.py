@@ -191,14 +191,6 @@ def get_inference_normalized_distance_matrix(pose_estimator, rgb_input):
     return key_points, dist_mat[np.triu_indices(dist_mat.shape[0], k=1)]
 
 
-def inference_function_dispatcher():
-    return {
-        "normalized_distance_matrix": get_inference_normalized_distance_matrix,
-        "distance_matrix": get_inference_distance_matrix,
-        "normalized_key_points": get_body_normalized_key_points,
-    }
-
-
 def write_to_video(
     pth, image_sequence: list, text_per_frame: list, fps: int, width: int, height: int
 ):
