@@ -27,6 +27,12 @@ class Conf:
     def get_sub_value_entry(self, name: str, sub_value: str):
         return self._config[name][sub_value]
 
+    def update_sub_entry(self, name: str, sub_name: str, value: str):
+        self._config[name][sub_name] = value
+
+    def update_entry(self, name: str, value: str):
+        self._config[name] = value
+
 
 class TrainConf(Conf):
     def __init__(self, pth: str):

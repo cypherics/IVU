@@ -1,4 +1,5 @@
 from collections import defaultdict
+from itertools import islice, cycle
 
 import decord
 import numpy as np
@@ -67,12 +68,7 @@ class VideoInferenceInputData:
 
     @staticmethod
     def _adjust_frame_for_video_frame(x, stride):
-        n_samples = x.shape[0]
-
-        indices = np.arange(n_samples)
-        end = min(0 + stride, n_samples)
-        stride_idx = indices[0 - stride + end - 0 : end]
-        return x[stride_idx]
+        return np.array(list(islice(cycle(x), stride)))
 
     def inference_data_gen(self, video_reader: decord.VideoReader):
         self._reset_meta()
@@ -93,12 +89,22 @@ class VideoInferenceInputData:
                     self._pose_estimator.get_annotated_frame()
                 )
 
-                if (stride_iterator + 1) % self._stride == 0:
+                if (stride_iterator + 1) % self._stride == 0 and len(
+                    np.array(self._meta["pose_data"])
+                ) == self._stride:
                     yield self._meta["my_frames"], np.array(self._meta["pose_data"])
                     self._reset_meta()
                 elif (
                     stride_iterator + 1 == len(video_reader)
                     and (stride_iterator + 1) % self._stride != 0
+                ):
+                    yield self._meta["my_frames"], self._adjust_frame_for_video_frame(
+                        np.array(self._meta["pose_data"]), self._stride
+                    )
+                    self._reset_meta()
+                elif (
+                    len(np.array(self._meta["pose_data"])) != self._stride
+                    and (stride_iterator + 1) % self._stride == 0
                 ):
                     yield self._meta["my_frames"], self._adjust_frame_for_video_frame(
                         np.array(self._meta["pose_data"]), self._stride

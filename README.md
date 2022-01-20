@@ -78,10 +78,11 @@ trainer.start_training()
 ```
 
 #### Inference on data
+
 ```python
 from ivu.inference import Inference
 
-vd = Inference.init_inference_from_config("path_to_config_file")
+vd = Inference.init_inference_from_config_pth("path_to_config_file")
 vd.run()
 
 ```
