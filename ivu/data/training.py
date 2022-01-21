@@ -1,9 +1,7 @@
 from itertools import cycle, islice
 from statistics import mode
-from typing import List
 
 import numpy as np
-import pandas as pd
 
 from ivu.utils import (
     train_val_split,
@@ -38,15 +36,15 @@ class TrainInputData:
             _y.append(mode(self._y[batch_idx]))
             # _y.append(Counter(y[batch_idx]).most_common(1)[0][0])
 
-        _x_shuffled, _y_shuffled = shuffle_two_list_together(_x, _y)
+        # _x, _y = shuffle_two_list_together(_x, _y)
         if validation_split is not None:
             _x_train, _y_train, _x_val, _y_val = train_val_split(
-                np.array(_x_shuffled), np.array(_y_shuffled), val_split=validation_split
+                np.array(_x), np.array(_y), val_split=validation_split
             )
         else:
             _x_train, _y_train, _x_val, _y_val = (
-                np.array(_x_shuffled),
-                np.array(_y_shuffled),
+                np.array(_x),
+                np.array(_y),
                 None,
                 None,
             )

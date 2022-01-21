@@ -33,6 +33,12 @@ class Conf:
     def update_entry(self, name: str, value: str):
         self._config[name] = value
 
+    def contains_entry(self, name: str):
+        return hasattr(self._config, name)
+
+    def contains_sub_entry(self, name: str, sub_name: str):
+        return hasattr(self._config[name], sub_name)
+
 
 class TrainConf(Conf):
     def __init__(self, pth: str):
