@@ -66,12 +66,11 @@ def train_val_split(x_train: np.ndarray, y_train: np.ndarray, val_split=0.2):
     return x_train, y_train, x_val, y_val
 
 
-def one_hot(input_data):
+def one_hot(input_data, n_values):
     # One hot encoding of the network outputs
     # e.g.: [[5], [0], [3]] --> [[0, 0, 0, 0, 0, 1], [1, 0, 0, 0, 0, 0], [0, 0, 0, 1, 0, 0]]
 
     input_data = input_data.reshape(len(input_data))
-    n_values = int(np.max(input_data)) + 1
     return np.eye(n_values)[np.array(input_data, dtype=np.int32)]
 
 

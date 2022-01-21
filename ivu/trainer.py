@@ -23,6 +23,9 @@ class Trainer:
             callbacks=self._config.get_callbacks(),
             batch_size=self._config.get_entry(name="batch_size"),
             validation_data=self._val_data,
+            shuffle=self._config.get_entry("shuffle")
+            if self._config.contains_entry("shuffle")
+            else False,
         )
 
         print(f"TRAIN METRIC : {model.evaluate(*self._train_data)}")
@@ -36,7 +39,9 @@ class Trainer:
 
         parameters = conf.get_entry("data")
         train_data, val_data = input_data.create_sequence_data(
-            stride=parameters["stride"], validation_split=parameters["validation_split"]
+            stride=parameters["stride"],
+            validation_split=parameters["validation_split"],
+            n_classes=conf.get_sub_value_entry("model", "parameters")["n_classes"],
         )
         return cls(train_data, val_data, conf)
 
@@ -47,7 +52,9 @@ class Trainer:
 
         parameters = conf.get_entry("data")
         train_data, val_data = input_data.create_sequence_data(
-            stride=parameters["stride"], validation_split=parameters["validation_split"]
+            stride=parameters["stride"],
+            validation_split=parameters["validation_split"],
+            n_classes=conf.get_sub_value_entry("model", "parameters")["n_classes"],
         )
         return cls(train_data, val_data, conf)
 
@@ -58,7 +65,9 @@ class Trainer:
 
         parameters = conf.get_entry("data")
         train_data, val_data = input_data.create_sequence_data(
-            stride=parameters["stride"], validation_split=parameters["validation_split"]
+            stride=parameters["stride"],
+            validation_split=parameters["validation_split"],
+            n_classes=conf.get_sub_value_entry("model", "parameters")["n_classes"],
         )
         return cls(train_data, val_data, conf)
 
