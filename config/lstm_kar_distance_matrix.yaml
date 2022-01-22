@@ -1,6 +1,6 @@
 data:
   validation_split: 0.2
-  stride: 300
+  stride: 128
 
 optimizer:
   name: Adam
@@ -32,7 +32,7 @@ loss:
     from_logits: True
 
 batch_size: 32
-epochs: 1
+epochs: 300
 shuffle: True
 
 model :
