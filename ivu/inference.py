@@ -35,7 +35,7 @@ class Inference:
         video_parameters: dict,
         pose_estimator_parameters: dict,
         inference_parameters: dict,
-        data_dir: str,
+        data_dir: str = None,
         save_dir: str = None,
     ):
         self._model = model
@@ -99,6 +99,16 @@ class Inference:
             prediction_per_frame=predictions,
         )
 
+    def write_prediction(self, file_name: str, file_inference: FileInference):
+        write_to_video(
+            os.path.join(self._save_dir, f"output_{file_name}.mp4"),
+            image_sequence=file_inference.annotated_frames,
+            text_per_frame=file_inference.prediction_per_frame,
+            fps=file_inference.fps,
+            width=file_inference.dim[-1],
+            height=file_inference.dim[0],
+        )
+
     def run(self):
 
         files = os.listdir(self._data_dir)
@@ -115,15 +125,9 @@ class Inference:
             file_inference = self.run_over_file(file_path)
 
             if self._save_dir is not None:
-                write_to_video(
-                    os.path.join(
-                        self._save_dir, f"output_{os.path.splitext(file)[0]}.mp4"
-                    ),
-                    image_sequence=file_inference.annotated_frames,
-                    text_per_frame=file_inference.prediction_per_frame,
-                    fps=file_inference.fps,
-                    width=file_inference.dim[-1],
-                    height=file_inference.dim[0],
+                self.write_prediction(
+                    file_name=os.path.splitext(file)[0],
+                    file_inference=file_inference,
                 )
 
     @classmethod
