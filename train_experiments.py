@@ -1,7 +1,9 @@
+import sys
+
 from ivu.trainer import Trainer
 
-TRAIN_PTH = r"datasets/train_key_points.pickle"
-TEST_PTH = r"datasets/test_key_points.pickle"
+# TRAIN_PTH = r"datasets/train_key_points.pickle"
+# TEST_PTH = r"datasets/test_key_points.pickle"
 
 
 def temporal_kar_with_normalized_distance_matrix(conf_pth):
@@ -72,7 +74,7 @@ def lstm_with_distance_matrix(conf_pth):
     lstm_kar_trainer_with_distance_matrix.start_training()
 
 
-def run_experiments():
+def _run_experiments():
     temporal_kar_with_normalized_distance_matrix(
         r"config/temporal_with_distance_matrix.yaml"
     )
@@ -87,4 +89,7 @@ def run_experiments():
 
 
 if __name__ == "__main__":
-    run_experiments()
+    TRAIN_PTH = sys.argv[1]
+    TEST_PTH = sys.argv[2]
+
+    _run_experiments()

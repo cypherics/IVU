@@ -142,10 +142,10 @@ used on can perform the training.
 
 ### Run Experiments
 Predefined config can be found in `config/`, which will be used to perform experiments.
-Just run the ```train_experiments.py```, which will start performing experiments on those configurations present in the folder.
+Just run the ```train_experiments.py```, with path to data, which will start performing experiments on those configurations present in the folder.
 
 ```shell
-python train_experiments.py
+python train_experiments.py path/to/train.pickle path/to/test.pickle
 ```
 The results of the experiment can be viewed in `logs/` folder, which is generated in the present working directly. 
 The folder contains saved model in the folder named `chk`, training graphs saved in the folder name `graphs`, a pdf containing the confusion matrix and its test metric.
