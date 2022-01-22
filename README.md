@@ -165,6 +165,6 @@ INFER_FOR = ["normalized_distance_matrix", "distance_matrix", "normalized_key_po
 Based on what type of data the model was trained on choose the appropriate mode, 
 below command is when mode is `normalized_distance_matrix`
 ```shell
-python infer_me.py normalized_distance_matrix path/till/the/folder/chk path/where/my/testing/videos/are path/where/to/save/results
+python infer_me.py normalized_distance_matrix path/till/the/folder/chk path/where/my/testing/videos/are path/where/to/save/results 32
 ```
 
