@@ -8,7 +8,7 @@ train and test.
 
 | Value                      | Description                                                                       |
 |----------------------------|-----------------------------------------------------------------------------------|
-| key_points                 | 16 body keypoints                                                                 |
+| key_points                 | 17 body keypoints                                                                 |
 | normalized_key_points      | key points are normalized with respect to body position                           |
 | distance_matrix            | pair wise distance between key points                                             |
 | normalized_distance_matrix | pair wise distance between key points is normalized with respect to body position |
