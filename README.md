@@ -147,12 +147,12 @@ Just run the ```train_experiments.py```, with path to data, which will start per
 
 If both `train_key_points.pickle` and `test_key_points.pickle` are available the run the following command to perform experiments using those files
 ```shell
-python run_train_and_testing.py path/to/train.pickle path/to/test.pickle
+python run_train_and_testing.py path/to/train_key_points.pickle path/to/test_key_points.pickle
 ```
 
 If just `train_key_points.pickle` is available the run the following command to perform experiments that file without test set.
 ```shell
-python run_train_and_testing.py path/to/train.pickle None
+python run_train_and_testing.py path/to/train_key_points.pickle None
 ```
 
 The results of the experiment can be viewed in `logs/` folder, which is generated in the present working directly. 
