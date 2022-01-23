@@ -1,6 +1,6 @@
 data:
   validation_split: 0.2
-  stride: 128
+  stride: 60
 
 optimizer:
   name: Adam
@@ -33,11 +33,12 @@ loss:
 
 batch_size: 32
 epochs: 300
+shuffle: True
 
 model:
   name: temporal_model
   parameters:
-    input_features: 51
+    input_features: 136
     n_classes: 7
 
 log_dir : logs/

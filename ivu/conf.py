@@ -49,7 +49,7 @@ class TrainConf(Conf):
         self._loss_function = None
 
         self._log_dir = self._config.log_dir
-        self._model_pth, self._graph_pth = self._create_log_dir()
+        self._model_pth, self._graph_pth, self._test_metric = self._create_log_dir()
 
     def get_loss(self):
         return getattr(losses, self._config.loss.name)(**self._config.loss.parameters)
@@ -80,9 +80,14 @@ class TrainConf(Conf):
 
         date_time_stamp = datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
 
-        return os.path.join(*[self._log_dir, date_time_stamp, "chk"]), os.path.join(
-            *[self._log_dir, date_time_stamp, "graphs"]
+        return (
+            os.path.join(*[self._log_dir, date_time_stamp, "chk"]),
+            os.path.join(*[self._log_dir, date_time_stamp, "graphs"]),
+            os.path.join(*[self._log_dir, date_time_stamp]),
         )
+
+    def get_test_metric_dir(self):
+        return self._test_metric
 
 
 class DataConf(Conf):

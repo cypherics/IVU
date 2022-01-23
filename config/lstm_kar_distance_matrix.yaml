@@ -1,0 +1,49 @@
+data:
+  validation_split: 0.2
+  stride: 60
+
+optimizer:
+  name: Adam
+  parameters:
+    lr: 0.001
+
+callbacks:
+  ReduceLROnPlateau:
+    parameters:
+      patience: 3
+      verbose: 1
+      factor: 0.2
+      min_lr: 0.000001
+      monitor: val_loss
+
+  EarlyStopping:
+    parameters:
+      min_delta: 0.001
+      patience: 8
+      verbose: 1
+
+  ModelCheckpoint:
+    parameters:
+      verbose: 1
+      save_best_only: True
+      save_weights_only: False
+      monitor: val_loss
+
+loss:
+  name: CategoricalCrossentropy
+  parameters:
+    from_logits: True
+
+batch_size: 32
+epochs: 100
+shuffle: True
+
+model :
+  name : lstm_kar_model
+  parameters:
+    hidden_units: 64
+    input_features: 136
+    n_classes: 7
+    penalty: 0.0
+
+log_dir : logs/

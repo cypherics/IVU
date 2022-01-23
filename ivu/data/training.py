@@ -12,17 +12,17 @@ from ivu.utils import (
 
 
 class TrainInputData:
-    def __init__(self, x, y):
-        self._x = x
-        self._y = y
+    def __init__(self, df, train_type, class_column="class_label_index"):
+        self._df = df
+        self._train_type = train_type
+        self._class_column = class_column
 
-    def create_sequence_data(
-        self, validation_split: float = None, stride: int = 300, n_classes: int = 1
-    ):
-        _x = list()
-        _y = list()
+    @staticmethod
+    def _sequence(x, y, stride):
+        _x_sequence = list()
+        _y_sequence = list()
 
-        n_samples = self._x.shape[0]
+        n_samples = x.shape[0]
         indices = np.arange(n_samples)
 
         for start in range(0, n_samples, stride):
@@ -32,23 +32,44 @@ class TrainInputData:
             if len(batch_idx) < stride:
                 batch_idx = list(islice(cycle(indices), stride))
 
-            _x.append(self._x[batch_idx])
-            _y.append(mode(self._y[batch_idx]))
-            # _y.append(Counter(y[batch_idx]).most_common(1)[0][0])
+            _x_sequence.append(x[batch_idx].reshape(stride, -1))
+            _y_sequence.append(mode(y[batch_idx]))
 
-        # _x, _y = shuffle_two_list_together(_x, _y)
+        return _x_sequence, _y_sequence
+
+    def create_sequence_data(
+        self, validation_split: float = None, stride: int = 300, n_classes: int = 1
+    ):
+        files = np.unique(self._df["file"].to_numpy())
+
+        _x_train = list()
+        _y_train = list()
+
+        for file in files:
+            file_df = self._df.loc[self._df["file"] == file]
+
+            x = np.array(file_df[self._train_type].tolist())
+            y = np.array(file_df[self._class_column].tolist())
+
+            _x, _y = self._sequence(x, y, stride)
+
+            _x_train.extend(_x)
+            _y_train.extend(_y)
+
         if validation_split is not None:
             _x_train, _y_train, _x_val, _y_val = train_val_split(
-                np.array(_x), np.array(_y), val_split=validation_split
+                np.array(_x_train),
+                np.array(_y_train),
+                val_split=validation_split,
+                n_classes=n_classes,
             )
         else:
             _x_train, _y_train, _x_val, _y_val = (
-                np.array(_x),
-                np.array(_y),
+                np.array(_x_train),
+                np.array(_y_train),
                 None,
                 None,
             )
-
         return (
             _x_train,
             one_hot(_y_train, n_classes),
@@ -60,56 +81,17 @@ class TrainInputData:
     @classmethod
     def data_with_normalized_key_points(cls, pth):
         df = load_pickle(pth)
-        subset = df[
-            [
-                "normalized_key_points",
-                "class_label",
-                "class_label_index",
-                "frame_details",
-                "frame_number",
-            ]
-        ]
-        x = np.array(subset["normalized_key_points"].tolist())
-        y = np.array(subset["class_label_index"].tolist())
-
-        x = x.reshape(x.shape[0], -1)
-        return cls(x, y)
+        return cls(df, "normalized_key_points")
 
     @classmethod
     def data_with_normalized_distance_matrix(cls, pth):
         df = load_pickle(pth)
-        # ans = [y for x, y in df.groupby('file', as_index=False)]
-
-        subset = df[
-            [
-                "normalized_distance_matrix",
-                "class_label",
-                "class_label_index",
-                "frame_details",
-                "frame_number",
-            ]
-        ]
-        x = np.array(subset["normalized_distance_matrix"].tolist())
-        y = np.array(subset["class_label_index"].tolist())
-
-        return cls(x, y)
+        return cls(df, "normalized_distance_matrix")
 
     @classmethod
     def data_with_distance_matrix(cls, pth):
         df = load_pickle(pth)
-        subset = df[
-            [
-                "distance_matrix",
-                "class_label",
-                "class_label_index",
-                "frame_details",
-                "frame_number",
-            ]
-        ]
-        x = np.array(subset["distance_matrix"].tolist())
-        y = np.array(subset["class_label_index"].tolist())
-
-        return cls(x, y)
+        return cls(df, "distance_matrix")
 
     @classmethod
     def data_with_key_points(cls, pth):

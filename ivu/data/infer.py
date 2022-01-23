@@ -59,9 +59,11 @@ class VideoInferenceInputData:
 
     def _get_inference_body_normalized_key_points(self, rgb_input):
         key_points = self._pose_estimator.get_key_points_from_image(rgb_input)
-        return key_points, normalize_body_key_points(
+        normalized_key_points = normalize_body_key_points(
             key_points, Pose16LandmarksBodyModel
         )
+        normalized_key_points_infer_data = normalized_key_points.reshape(-1)
+        return key_points, normalized_key_points_infer_data
 
     def _reset_meta(self):
         self._meta = defaultdict(list)
