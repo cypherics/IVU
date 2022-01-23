@@ -1,5 +1,12 @@
 # IVU
 
+### Requirements 
+Check the requirement.txt for project specific requirements. To install project specific requirements run the following command, It is highly recommended to create a seperate python enviorment before running the command.
+
+```shell
+pip install -r requirements.txt
+```
+
 ### DATASET
 
 The original data set can be found here [original dataset](http://hi.cs.waseda.ac.jp/~ogata/Dataset.html). The complete processed dataset can be downloaded from [complete dataset](https://drive.google.com/file/d/1qRHneW23Pgmem38N3yCUeoJhRn8UYTww/view?usp=sharing). 
