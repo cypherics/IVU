@@ -51,19 +51,35 @@ def shuffle_two_list_together(x, y):
     return zip(*c)
 
 
-def train_val_split(x_train: np.ndarray, y_train: np.ndarray, val_split=0.2):
-    # VAL SPLIT
-    indices = np.arange(x_train.shape[0])
-    np.random.shuffle(indices)
+def train_val_split(
+    x_train: np.ndarray, y_train: np.ndarray, val_split=0.2, n_classes=7
+):
+    y_int = y_train.astype(np.int32)
 
-    val_data_count = int(x_train.shape[0] * val_split)
+    _x_train, _y_train = list(), list()
+    _x_val, _y_val = list(), list()
 
-    x_val = x_train[:val_data_count]
-    y_val = y_train[:val_data_count]
+    for c in range(n_classes):
+        class_sel = y_int == c
+        x_class = x_train[class_sel]
+        y_class = y_train[class_sel]
 
-    x_train = np.delete(x_train, indices[:val_data_count], axis=0)
-    y_train = np.delete(y_train, indices[:val_data_count])
-    return x_train, y_train, x_val, y_val
+        val_size = int(val_split * y_class.shape[0])
+        _x_val.append(x_class[:val_size])
+        _y_val.append(y_class[:val_size])
+        _x_train.append(x_class[val_size:])
+        _y_train.append(y_class[val_size:])
+
+    _x_train = np.concatenate(_x_train, axis=0)
+    _y_train = np.concatenate(_y_train, axis=0)
+    _x_val = np.concatenate(_x_val, axis=0)
+    _y_val = np.concatenate(_y_val, axis=0)
+
+    if len(_x_val) == 0:
+        _x_val = None
+        _y_val = None
+
+    return _x_train, _y_train, _x_val, _y_val
 
 
 def one_hot(input_data, n_values):

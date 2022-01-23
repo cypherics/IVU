@@ -113,7 +113,7 @@ class Trainer:
 
         test_data, _ = input_test_data.create_sequence_data(
             stride=parameters["stride"],
-            validation_split=parameters["validation_split"],
+            validation_split=None,
             n_classes=conf.get_sub_value_entry("model", "parameters")["n_classes"],
         )
         return cls(
@@ -141,7 +141,7 @@ class Trainer:
         )
         test_data, _ = input_test_data.create_sequence_data(
             stride=parameters["stride"],
-            validation_split=parameters["validation_split"],
+            validation_split=None,
             n_classes=conf.get_sub_value_entry("model", "parameters")["n_classes"],
         )
         return cls(
@@ -168,7 +168,7 @@ class Trainer:
 
         test_data, _ = input_test_data.create_sequence_data(
             stride=parameters["stride"],
-            validation_split=parameters["validation_split"],
+            validation_split=None,
             n_classes=conf.get_sub_value_entry("model", "parameters")["n_classes"],
         )
         return cls(

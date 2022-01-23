@@ -2,5 +2,5 @@ from ivu.data.training import TrainInputData
 
 
 class TestInputData(TrainInputData):
-    def __init__(self, x, y):
-        super().__init__(x, y)
+    def __init__(self, df, train_type, class_column="class_label_index"):
+        super().__init__(df, train_type, class_column)
