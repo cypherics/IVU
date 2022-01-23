@@ -109,7 +109,6 @@ class Trainer:
     @classmethod
     def train_with_normalized_key_points(cls, train_pth, test_pth, conf_pth):
         input_train_data = TrainInputData.data_with_normalized_key_points(train_pth)
-        input_test_data = TestInputData.data_with_normalized_key_points(test_pth)
 
         conf = TrainConf(conf_pth)
 
@@ -120,11 +119,16 @@ class Trainer:
             n_classes=conf.get_sub_value_entry("model", "parameters")["n_classes"],
         )
 
-        test_data, _ = input_test_data.create_sequence_data(
-            stride=parameters["stride"],
-            validation_split=None,
-            n_classes=conf.get_sub_value_entry("model", "parameters")["n_classes"],
-        )
+        if test_pth is not None:
+            input_test_data = TestInputData.data_with_normalized_key_points(test_pth)
+            test_data, _ = input_test_data.create_sequence_data(
+                stride=parameters["stride"],
+                validation_split=None,
+                n_classes=conf.get_sub_value_entry("model", "parameters")["n_classes"],
+            )
+        else:
+            test_data = None
+
         return cls(
             train_data,
             val_data,
@@ -138,8 +142,6 @@ class Trainer:
         input_train_data = TrainInputData.data_with_normalized_distance_matrix(
             train_pth
         )
-        input_test_data = TestInputData.data_with_normalized_distance_matrix(test_pth)
-
         conf = TrainConf(conf_pth)
 
         parameters = conf.get_entry("data")
@@ -148,11 +150,16 @@ class Trainer:
             validation_split=parameters["validation_split"],
             n_classes=conf.get_sub_value_entry("model", "parameters")["n_classes"],
         )
-        test_data, _ = input_test_data.create_sequence_data(
-            stride=parameters["stride"],
-            validation_split=None,
-            n_classes=conf.get_sub_value_entry("model", "parameters")["n_classes"],
-        )
+        if test_pth is not None:
+            input_test_data = TestInputData.data_with_normalized_distance_matrix(test_pth)
+
+            test_data, _ = input_test_data.create_sequence_data(
+                stride=parameters["stride"],
+                validation_split=None,
+                n_classes=conf.get_sub_value_entry("model", "parameters")["n_classes"],
+            )
+        else:
+            test_data = None
         return cls(
             train_data,
             val_data,
@@ -164,7 +171,6 @@ class Trainer:
     @classmethod
     def train_with_distance_matrix(cls, train_pth, test_pth, conf_pth):
         input_train_data = TrainInputData.data_with_distance_matrix(train_pth)
-        input_test_data = TestInputData.data_with_distance_matrix(test_pth)
 
         conf = TrainConf(conf_pth)
 
@@ -175,11 +181,16 @@ class Trainer:
             n_classes=conf.get_sub_value_entry("model", "parameters")["n_classes"],
         )
 
-        test_data, _ = input_test_data.create_sequence_data(
-            stride=parameters["stride"],
-            validation_split=None,
-            n_classes=conf.get_sub_value_entry("model", "parameters")["n_classes"],
-        )
+        if test_pth is not None:
+            input_test_data = TestInputData.data_with_distance_matrix(test_pth)
+            test_data, _ = input_test_data.create_sequence_data(
+                stride=parameters["stride"],
+                validation_split=None,
+                n_classes=conf.get_sub_value_entry("model", "parameters")["n_classes"],
+            )
+        else:
+            test_data = None
+
         return cls(
             train_data,
             val_data,
