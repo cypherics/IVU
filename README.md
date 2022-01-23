@@ -152,12 +152,12 @@ used one can perform the training.
 Predefined config files can be found in `config/`, which can be used to perform experiments.
 Just run the ```train_experiments.py```, with paths to the processed training and test set data, which will start performing experiments on those configurations present in the folder.
 
-If both `train_key_points.pickle` and `test_key_points.pickle` are available the run the following command to perform experiments using those files
+If both `train_key_points.pickle` and `test_key_points.pickle` are available then run the following command to perform experiments using those files
 ```shell
 python run_train_and_testing.py path/to/train_key_points.pickle path/to/test_key_points.pickle
 ```
 
-If just `train_key_points.pickle` is available the run the following command to perform experiments that file without test set.
+If just `train_key_points.pickle` is available then run the following command to perform experiments without test set.
 ```shell
 python run_train_and_testing.py path/to/train_key_points.pickle None
 ```
