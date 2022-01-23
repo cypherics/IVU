@@ -1,6 +1,6 @@
 data:
   validation_split: 0.2
-  stride: 128
+  stride: 60
 
 optimizer:
   name: Adam
@@ -14,6 +14,7 @@ callbacks:
       verbose: 1
       factor: 0.2
       min_lr: 0.000001
+      monitor: val_loss
 
   EarlyStopping:
     parameters:
@@ -26,13 +27,15 @@ callbacks:
       verbose: 1
       save_best_only: True
       save_weights_only: False
+      monitor: val_loss
+
 loss:
   name: CategoricalCrossentropy
   parameters:
     from_logits: True
 
 batch_size: 32
-epochs: 300
+epochs: 100
 shuffle: True
 
 model :
@@ -41,6 +44,6 @@ model :
     hidden_units: 64
     input_features: 136
     n_classes: 7
-    penalty: 0.0001
+    penalty: 0.0
 
 log_dir : logs/

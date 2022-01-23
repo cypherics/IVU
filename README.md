@@ -1,8 +1,9 @@
 # IVU
 
 ### DATASET
-Dataset which is ready to train can be downloaded from this [link](https://drive.google.com/drive/folders/1U9_Aw5AxK3iqqWGW__O0Ezx9CeaaE3rf?usp=sharing). The data set is in two files
-train and test. 
+
+The complete processed dataset can be downloaded from [complete dataset](https://drive.google.com/file/d/1qRHneW23Pgmem38N3yCUeoJhRn8UYTww/view?usp=sharing). 
+Dataset which is split into train and test can be downloaded from [split data for training and testing](https://drive.google.com/drive/folders/1U9_Aw5AxK3iqqWGW__O0Ezx9CeaaE3rf?usp=sharing).
 
 ### Description of the data
 
@@ -141,12 +142,19 @@ used on can perform the training.
     ```
 
 ### Run Experiments
-Predefined config can be found in `config/`, which will be used to perform experiments.
+Predefined config can be found in `config/`, which can be used to perform experiments.
 Just run the ```train_experiments.py```, with path to data, which will start performing experiments on those configurations present in the folder.
 
+If both `train_key_points.pickle` and `test_key_points.pickle` are available the run the following command to perform experiments using those files
 ```shell
-python train_experiments.py path/to/train.pickle path/to/test.pickle
+python run_train_and_testing.py path/to/train.pickle path/to/test.pickle
 ```
+
+If just `train_key_points.pickle` is available the run the following command to perform experiments that file without test set.
+```shell
+python run_train_and_testing.py path/to/train.pickle None
+```
+
 The results of the experiment can be viewed in `logs/` folder, which is generated in the present working directly. 
 The folder contains saved model in the folder named `chk`, training graphs saved in the folder name `graphs`, a pdf containing the confusion matrix and its test metric.
 
@@ -163,8 +171,17 @@ INFER_FOR = ["normalized_distance_matrix", "distance_matrix", "normalized_key_po
 ```
 
 Based on what type of data the model was trained on choose the appropriate mode, 
-below command is when mode is `normalized_distance_matrix`
+below command is when mode is `normalized_distance_matrix` and stride of `32`
 ```shell
-python infer_me.py normalized_distance_matrix path/till/the/folder/chk path/where/my/testing/videos/are path/where/to/save/results 32
+python run_example.py normalized_distance_matrix path/till/the/folder/chk path/where/my/testing/videos/are path/where/to/save/results 32
 ```
 
+### Run Demo Using pretrained weights
+- Download pretrained weights from [here]()
+- Download the videos for demo [here]()
+- Extract the downloaded model.zip, the extracted folder will contain a `chk` folder, the path till the `chk` folder is the model path
+- Extract the downloaded demo_videos.zip
+- Run the following command to run inference on the downloaded model.
+```shell
+python run_example.py normalized_key_points path/till/the/extracted/model/chk path/till/the/extracted/demo_videos path/where/to/save/results 64
+```

@@ -1,3 +1,4 @@
+import ast
 import sys
 
 from ivu.trainer import Trainer
@@ -90,6 +91,6 @@ def _run_experiments():
 
 if __name__ == "__main__":
     TRAIN_PTH = sys.argv[1]
-    TEST_PTH = sys.argv[2]
+    TEST_PTH = ast.literal_eval(sys.argv[2])
 
     _run_experiments()

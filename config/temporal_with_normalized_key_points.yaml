@@ -1,6 +1,6 @@
 data:
   validation_split: 0.2
-  stride: 64
+  stride: 60
 
 optimizer:
   name: Adam
