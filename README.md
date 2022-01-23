@@ -177,8 +177,8 @@ python run_example.py normalized_distance_matrix path/till/the/folder/chk path/w
 ```
 
 ### Run Demo Using pretrained weights
-- Download pretrained weights from [here]()
-- Download the videos for demo [here]()
+- Download pretrained weights from [here](https://github.com/cypherics/IVU/releases/download/v0.0.2-alpha/model.zip)
+- Download the videos for demo [here](https://github.com/cypherics/IVU/releases/download/v0.0.2-alpha/demo_videos.zip)
 - Extract the downloaded model.zip, the extracted folder will contain a `chk` folder, the path till the `chk` folder is the model path
 - Extract the downloaded demo_videos.zip
 - Run the following command to run inference on the downloaded model.
