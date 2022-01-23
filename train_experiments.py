@@ -78,14 +78,14 @@ def _run_experiments():
     temporal_kar_with_normalized_distance_matrix(
         r"config/temporal_with_distance_matrix.yaml"
     )
-    # temporal_kar_with_distance_matrix(r"config/temporal_with_distance_matrix.yaml")
-    # temporal_with_normalized_key_points(
-    #     r"config/temporal_with_normalized_key_points.yaml"
-    # )
-    #
-    # lstm_with_normalized_key_points(r"config/lstm_kar_normalized_key_points.yaml")
-    # lstm_with_normalized_distance_matrix(r"config/lstm_kar_distance_matrix.yaml")
-    # lstm_with_distance_matrix(r"config/lstm_kar_distance_matrix.yaml")
+    temporal_kar_with_distance_matrix(r"config/temporal_with_distance_matrix.yaml")
+    temporal_with_normalized_key_points(
+        r"config/temporal_with_normalized_key_points.yaml"
+    )
+
+    lstm_with_normalized_key_points(r"config/lstm_kar_normalized_key_points.yaml")
+    lstm_with_normalized_distance_matrix(r"config/lstm_kar_distance_matrix.yaml")
+    lstm_with_distance_matrix(r"config/lstm_kar_distance_matrix.yaml")
 
 
 if __name__ == "__main__":

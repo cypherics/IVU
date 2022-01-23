@@ -23,18 +23,20 @@ LABEL_ASSOCIATION = {
 
 
 class Metric:
-    def model_metric(self, model, data):
+    @staticmethod
+    def model_metric(model, data):
         return model.evaluate(*data)
 
-    def generate_confusion_matrix(self, model, data):
+    @staticmethod
+    def generate_confusion_matrix(model, data):
         predictions = tensorflow.argmax(model.predict(data[0]), axis=-1)
         confusion_matrix = tensorflow.math.confusion_matrix(
             tensorflow.argmax(data[1], axis=-1), predictions
         )
         return np.array(confusion_matrix)
 
-    def generate_metric(self, model, data, save_dir, title):
-        with PdfPages(os.path.join(save_dir, f"{title}.pdf")) as pdf:
+    def generate_metric(self, model, data, save_dir, title, split="test"):
+        with PdfPages(os.path.join(save_dir, f"{title}_{split.upper()}.pdf")) as pdf:
             fig = plt.figure(figsize=(11.69, 8.27))
             df_cm = pd.DataFrame(
                 self.generate_confusion_matrix(model, data),
@@ -48,7 +50,7 @@ class Metric:
 
             metric = self.model_metric(model, data)
 
-            txt = f"TEST ACCURACY : {metric[-1]}, TEST LOSS: {metric[0]}"
+            txt = f"{split.upper()} ACCURACY : {metric[-1]}, {split.upper()} LOSS: {metric[0]}"
             plt.text(0.05, 0.95, txt, transform=fig.transFigure, size=10)
             pdf.savefig()
             plt.close()
@@ -87,6 +89,13 @@ class Trainer:
 
         print(f"TRAIN METRIC : {model.evaluate(*self._train_data)}")
         if self._val_data is not None:
+            self._metric.generate_metric(
+                model,
+                self._val_data,
+                self._config.get_test_metric_dir(),
+                self._run_type,
+                split="val",
+            )
             print(f"VAL METRIC : {model.evaluate(*self._val_data)}")
 
         if self._test_data is not None:
