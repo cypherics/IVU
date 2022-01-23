@@ -2,7 +2,7 @@
 
 ### DATASET
 
-The complete processed dataset can be downloaded from [complete dataset](https://drive.google.com/file/d/1qRHneW23Pgmem38N3yCUeoJhRn8UYTww/view?usp=sharing). 
+The original data set can be found here [original dataset](http://hi.cs.waseda.ac.jp/~ogata/Dataset.html). The complete processed dataset can be downloaded from [complete dataset](https://drive.google.com/file/d/1qRHneW23Pgmem38N3yCUeoJhRn8UYTww/view?usp=sharing). 
 Dataset which is split into train and test can be downloaded from [split data for training and testing](https://drive.google.com/drive/folders/1U9_Aw5AxK3iqqWGW__O0Ezx9CeaaE3rf?usp=sharing).
 
 ### Description of the data
@@ -105,8 +105,8 @@ If data used for training is either ```key_points``` or `normalized_key_points` 
 else if data used is `distance_matrix` or `normalized_distance_matrix` set `input_features: 136`.
 
 - #### Start Training
-    Once th config is set, then based on the choice of the type of the data that is being
-used on can perform the training.
+    Once the config is set, then based on the choice of the type of the data that is being
+used one can perform the training.
     
     #### Train when data is Normalized Distance Matrix
     
@@ -142,8 +142,8 @@ used on can perform the training.
     ```
 
 ### Run Experiments
-Predefined config can be found in `config/`, which can be used to perform experiments.
-Just run the ```train_experiments.py```, with path to data, which will start performing experiments on those configurations present in the folder.
+Predefined config files can be found in `config/`, which can be used to perform experiments.
+Just run the ```train_experiments.py```, with paths to the processed training and test set data, which will start performing experiments on those configurations present in the folder.
 
 If both `train_key_points.pickle` and `test_key_points.pickle` are available the run the following command to perform experiments using those files
 ```shell
