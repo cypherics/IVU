@@ -87,7 +87,7 @@ and for `distance_matrix` & `normalized_distance_matrix` is `136`.
     
     log_dir : logs/
     ```
-    #### LSTM model configuration
+    - #### LSTM model configuration
  
     ```yaml
     model :
@@ -98,7 +98,7 @@ and for `distance_matrix` & `normalized_distance_matrix` is `136`.
         n_classes: 7
         penalty: 0.0001
     ```
-    #### Convolution model configuration
+    - #### Convolution model configuration
     ```yaml
     model:
       name: temporal_model
